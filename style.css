@@ -44,9 +44,6 @@ body, html {
 }
 
 button {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
   padding: 15px 30px;
   font-size: 20px;
   background: orange;
@@ -58,7 +55,25 @@ button {
 }
 
 #startBtn {
+  position: absolute;
+  left: 50%;
   top: 50%;
+  transform: translateX(-50%);
+}
+
+#mobileControls {
+  position: absolute;
+  bottom: 80px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 50px;
+  display: none;
+}
+
+#mobileControls button {
+  font-size: 30px;
+  padding: 20px 30px;
 }
 
 #endScreen {
