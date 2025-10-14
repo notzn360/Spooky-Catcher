@@ -2,78 +2,59 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: "Comic Sans MS", cursive;
 }
 
-body, html {
-  width: 100%;
-  height: 100%;
+body {
+  font-family: sans-serif;
   overflow: hidden;
+  background: #1a1a1a;
+  color: #fff;
 }
 
 #game {
+  position: relative;
   width: 100vw;
   height: 100vh;
-  background: radial-gradient(circle, #1a0000, #000);
-  position: relative;
+  background: linear-gradient(#111, #333);
+  overflow: hidden;
 }
 
 #player {
   position: absolute;
   bottom: 20px;
+  font-size: 50px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 50px;
 }
 
-.pumpkin {
+.pumpkin, .ghost {
   position: absolute;
   font-size: 40px;
-  top: -50px;
+  user-select: none;
 }
 
-#hud {
+.ghost {
+  color: #fff;
+}
+
+#ui {
   position: absolute;
   top: 10px;
   left: 50%;
   transform: translateX(-50%);
-  color: white;
-  font-size: 24px;
   display: flex;
-  gap: 50px;
-}
-
-button {
-  padding: 15px 30px;
-  font-size: 20px;
-  background: orange;
-  color: black;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  z-index: 10;
+  gap: 20px;
+  align-items: center;
 }
 
 #startBtn {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translateX(-50%);
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
 }
 
-#mobileControls {
-  position: absolute;
-  bottom: 80px;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  gap: 50px;
+.hidden {
   display: none;
-}
-
-#mobileControls button {
-  font-size: 30px;
-  padding: 20px 30px;
 }
 
 #endScreen {
@@ -81,13 +62,25 @@ button {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(0,0,0,0.7);
-  padding: 30px;
-  border-radius: 15px;
+  background: rgba(0,0,0,0.9);
+  padding: 20px 40px;
   text-align: center;
   display: none;
+  border: 2px solid orange;
+  border-radius: 10px;
 }
 
-.hidden {
+#mobileControls {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   display: none;
+  gap: 20px;
+}
+
+#mobileControls button {
+  padding: 15px 25px;
+  font-size: 20px;
+  cursor: pointer;
 }
