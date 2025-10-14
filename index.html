@@ -47,7 +47,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:Inter,Arial,sans-se
   <button id="nextLevelBtn">Ir para o próximo nível</button>
 </div>
 
-<div id="endScreen" role="dialog" aria-modal="true">
+<div id="endScreen">
   <h2 id="endTitle">Fim de Jogo</h2>
   <p>Pontos: <strong id="finalScore">0</strong></p>
   <p id="rewardCode" style="font-weight:700;color:#ffd08a"></p>
@@ -55,38 +55,35 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:Inter,Arial,sans-se
   <button id="restartBtn">Jogar novamente</button>
 </div>
 
-<div id="mobileControls" aria-hidden="true">
+<div id="mobileControls">
   <button id="leftBtn">◀️</button>
   <button id="rightBtn">▶️</button>
 </div>
 
 <script>
-const game = document.getElementById('game');
-const player = document.getElementById('player');
-const startBtn = document.getElementById('startBtn');
-const endScreen = document.getElementById('endScreen');
-const restartBtn = document.getElementById('restartBtn');
-const copyBtn = document.getElementById('copyBtn');
-const rewardCodeEl = document.getElementById('rewardCode');
-const finalScoreEl = document.getElementById('finalScore');
-const levelEl = document.getElementById('level');
-const timeEl = document.getElementById('time');
-const scoreEl = document.getElementById('score');
-const mobileControls = document.getElementById('mobileControls');
-const leftBtn = document.getElementById('leftBtn');
-const rightBtn = document.getElementById('rightBtn');
-const levelUpScreen = document.getElementById('levelUpScreen');
-const nextLevelBtn = document.getElementById('nextLevelBtn');
+const game=document.getElementById('game');
+const player=document.getElementById('player');
+const startBtn=document.getElementById('startBtn');
+const endScreen=document.getElementById('endScreen');
+const restartBtn=document.getElementById('restartBtn');
+const copyBtn=document.getElementById('copyBtn');
+const rewardCodeEl=document.getElementById('rewardCode');
+const finalScoreEl=document.getElementById('finalScore');
+const levelEl=document.getElementById('level');
+const timeEl=document.getElementById('time');
+const scoreEl=document.getElementById('score');
+const mobileControls=document.getElementById('mobileControls');
+const leftBtn=document.getElementById('leftBtn');
+const rightBtn=document.getElementById('rightBtn');
+const levelUpScreen=document.getElementById('levelUpScreen');
+const nextLevelBtn=document.getElementById('nextLevelBtn');
 
 let score=0, timeLeft=30, level=1, pumpkinsThisLevel=0;
 let gameActive=false, playerX=window.innerWidth/2;
 const playerWidth=50, step=22;
 let pumpkinInterval, ghostInterval, gameInterval;
-
 const MAX_LEVEL=5, POINTS_PER_LEVEL=15;
-const BASE_PUMPKIN_SPAWN_MS=700, BASE_PUMPKIN_FALL=4;
-const BASE_GHOST_SPAWN_MS=3000;
-
+const BASE_PUMPKIN_SPAWN_MS=700, BASE_PUMPKIN_FALL=4, BASE_GHOST_SPAWN_MS=3000;
 const REWARD_CODES=["NTX-1A7G","NTX-B4K9","NTX-5Q2M","NTX-R8ZW","NTX-6T0P","NTX-X3N4","NTX-9V6S","NTX-C2H7","NTX-J8L1","NTX-Z5Y0"];
 let currentCode="";
 
@@ -97,13 +94,16 @@ function startGame(){
   rewardCodeEl.textContent='';endScreen.style.display='none';levelUpScreen.style.display='none';
   startBtn.style.display='none';
   clearIntervals();
-  pumpkinInterval=setInterval(spawnPumpkin, spawnIntervalForLevel());
+  pumpkinInterval=setInterval(spawnPumpkin, BASE_PUMPKIN_SPAWN_MS);
   ghostInterval=setInterval(spawnGhost,BASE_GHOST_SPAWN_MS);
   gameInterval=setInterval(updateTimer,1000);
   document.addEventListener('keydown',onKeyDown);
   if(window.innerWidth<=768) mobileControls.style.display='flex';
   else mobileControls.style.display='none';
 }
+
+// Bloquear clique direito
+document.addEventListener('contextmenu', e => e.preventDefault());
 
 function onKeyDown(e){
   if(!gameActive) return;
@@ -131,7 +131,6 @@ function spawnPumpkin(){
     const pRect=p.getBoundingClientRect(), playerRect=player.getBoundingClientRect();
     if(pRect.bottom>=playerRect.top && pRect.left+8<playerRect.right && pRect.right-8>playerRect.left){
       score++;pumpkinsThisLevel++;scoreEl.textContent=score;
-      // Nível 5: não sobe automaticamente, apenas registra pontos
       if(level<MAX_LEVEL && pumpkinsThisLevel>=POINTS_PER_LEVEL) levelUp();
       p.remove();clearInterval(id);return;
     }
@@ -156,57 +155,49 @@ function spawnGhost(){
 }
 
 function levelUp(){
-  gameActive=false;clearIntervals();
-  pumpkinsThisLevel=0;timeLeft=30;timeEl.textContent=timeLeft;
+  gameActive=false;clearIntervals();pumpkinsThisLevel=0;timeLeft=30;timeEl.textContent=timeLeft;
   if(level>=MAX_LEVEL){showEndScreen();return;}
   levelUpScreen.style.display='block';
 }
 
 nextLevelBtn.addEventListener('click',()=>{
-  level++;scoreEl.textContent=score;levelEl.textContent=level;
-  levelUpScreen.style.display='none';gameActive=true;
+  level++;levelEl.textContent=level;levelUpScreen.style.display='none';gameActive=true;
   clearIntervals();
-  pumpkinInterval=setInterval(spawnPumpkin, spawnIntervalForLevel());
+  pumpkinInterval=setInterval(spawnPumpkin, BASE_PUMPKIN_SPAWN_MS);
   ghostInterval=setInterval(spawnGhost,BASE_GHOST_SPAWN_MS);
 });
 
-function spawnIntervalForLevel(){return Math.max(250, BASE_PUMPKIN_SPAWN_MS-(level-1)*90);}
 function updateTimer(){if(!gameActive) return;timeLeft--;timeEl.textContent=timeLeft;if(timeLeft<=0) endGame(false);}
 function clearIntervals(){clearInterval(gameInterval);clearInterval(pumpkinInterval);clearInterval(ghostInterval);}
 
 function showEndScreen(){
-  gameActive = false;
-  clearIntervals();
-  document.querySelectorAll('.pumpkin').forEach(n => n.remove());
-  document.querySelectorAll('.ghost').forEach(n => n.remove());
+  gameActive = false;clearIntervals();
+  document.querySelectorAll('.pumpkin').forEach(n=>n.remove());
+  document.querySelectorAll('.ghost').forEach(n=>n.remove());
   finalScoreEl.textContent = score;
-
-  // Prêmio só aparece no nível 5 se pegou 15 abóboras
   if(level === MAX_LEVEL && pumpkinsThisLevel >= POINTS_PER_LEVEL){
-    currentCode = REWARD_CODES[Math.floor(Math.random() * REWARD_CODES.length)];
-    rewardCodeEl.textContent = '🎉 Código: ' + currentCode;
-    copyBtn.style.display = 'inline-block';
-    document.getElementById('endTitle').textContent = 'Parabéns!';
+    currentCode = REWARD_CODES[Math.floor(Math.random()*REWARD_CODES.length)];
+    rewardCodeEl.textContent = '🎉 Código: '+currentCode;
+    copyBtn.style.display='inline-block';
+    document.getElementById('endTitle').textContent='Parabéns!';
   } else {
-    rewardCodeEl.textContent = '';
-    copyBtn.style.display='none';
-    document.getElementById('endTitle').textContent = 'Fim de Jogo';
+    rewardCodeEl.textContent='';copyBtn.style.display='none';document.getElementById('endTitle').textContent='Fim de Jogo';
   }
-
   endScreen.style.display='block';
 }
 
 function endGame(byGhost=false){
-  gameActive=false;
-  clearIntervals();
+  gameActive=false;clearIntervals();
   document.querySelectorAll('.pumpkin').forEach(n=>n.remove());
   document.querySelectorAll('.ghost').forEach(n=>n.remove());
   finalScoreEl.textContent=score;
+  if(byGhost){rewardCodeEl.textContent='Você tomou um susto! 😱';document.getElementById('endTitle').textContent='Você tomou um susto!';copyBtn.style.display='none';}
+  else showEndScreen();
+}
 
-  if(byGhost){
-    rewardCodeEl.textContent='Você tomou um susto! 😱';
-    document.getElementById('endTitle').textContent='Você tomou um susto!';
-    copyBtn.style.display='none';
-  } else {
-    showEndScreen();
-
+startBtn.addEventListener('click',startGame);
+restartBtn.addEventListener('click',startGame);
+copyBtn.addEventListener('click',()=>{navigator.clipboard.writeText(currentCode);alert('Código copiado!');});
+</script>
+</body>
+</html>
