@@ -8,6 +8,7 @@ const finalScore = document.getElementById("finalScore");
 const rewardCode = document.getElementById("rewardCode");
 const restartBtn = document.getElementById("restartBtn");
 
+const mobileControls = document.getElementById("mobileControls");
 const leftBtn = document.getElementById("leftBtn");
 const rightBtn = document.getElementById("rightBtn");
 
@@ -35,35 +36,44 @@ function startGame() {
   gameInterval = setInterval(updateTimer, 1000);
 
   document.addEventListener("keydown", movePlayer);
-  
+
+  // Mobile só aparece se a largura da tela <= 768
   if (window.innerWidth <= 768) {
-    document.getElementById("mobileControls").style.display = "flex";
+    mobileControls.style.display = "flex";
+  } else {
+    mobileControls.style.display = "none";
   }
 }
 
 function movePlayer(e) {
   if (!gameActive) return;
-
-  const key = e.key.toLowerCase(); // transforma a tecla em minúscula
+  const key = e.key.toLowerCase();
   if (key === "a" || key === "arrowleft") {
     playerX -= step;
-    if (playerX < 0) playerX = 0;
   } else if (key === "d" || key === "arrowright") {
     playerX += step;
-    if (playerX > window.innerWidth - 50) playerX = window.innerWidth - 50;
   }
+
+  // limites da tela
+  if (playerX < 0) playerX = 0;
+  if (playerX > window.innerWidth - 50) playerX = window.innerWidth - 50;
+
   player.style.left = playerX + "px";
 }
 
 // Mobile buttons
 leftBtn.addEventListener("touchstart", () => moveMobile(-step));
 rightBtn.addEventListener("touchstart", () => moveMobile(step));
+leftBtn.addEventListener("mousedown", () => moveMobile(-step));
+rightBtn.addEventListener("mousedown", () => moveMobile(step));
 
 function moveMobile(distance) {
   if (!gameActive) return;
   playerX += distance;
+
   if (playerX < 0) playerX = 0;
   if (playerX > window.innerWidth - 50) playerX = window.innerWidth - 50;
+
   player.style.left = playerX + "px";
 }
 
