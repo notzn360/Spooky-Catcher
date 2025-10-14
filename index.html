@@ -1,366 +1,198 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Spooky Quest — Pumpkin Wizard</title>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  html,body{width:100%;height:100%;overflow:hidden;font-family:Inter,Arial,Helvetica,sans-serif;background:linear-gradient(#0b0406,#14040a);}
-  #game{position:relative;width:100vw;height:100vh;overflow:hidden;}
-  #player{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);font-size:56px;pointer-events:none;user-select:none}
-  .pumpkin, .ghost{position:absolute;font-size:44px;user-select:none;pointer-events:none}
-  .ghost{filter:drop-shadow(0 0 6px rgba(255,255,255,0.2))}
-  #topbar{position:absolute;top:12px;left:50%;transform:translateX(-50%);display:flex;gap:28px;align-items:center;color:#fff;font-weight:600;font-size:18px;z-index:30}
-  #levelbox{background:rgba(255,165,0,0.08);padding:8px 12px;border-radius:8px;border:1px solid rgba(255,165,0,0.12);color:#ffd08a}
-  #scorebox,#timebox{background:rgba(255,255,255,0.03);padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.03)}
-  #startBtn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:40;padding:14px 24px;background:orange;border:none;border-radius:10px;font-weight:700;cursor:pointer;color:#000;font-size:18px}
-  #endScreen{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:50;background:rgba(0,0,0,0.85);color:#fff;padding:22px 28px;border-radius:12px;border:2px solid rgba(255,165,0,0.12);text-align:center;display:none;width:min(420px,90vw)}
-  #endScreen h2{margin-bottom:10px}
-  #endScreen p{margin:8px 0}
-  #restartBtn{margin-top:12px;padding:10px 18px;background:orange;border:none;border-radius:8px;font-weight:700;cursor:pointer}
-  #mobileControls{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:none;gap:22px;z-index:40}
-  #mobileControls button{padding:14px 22px;font-size:20px;border-radius:10px;border:none;background:rgba(255,165,0,0.95);cursor:pointer}
-  @media (max-width:768px){
-    #mobileControls{display:flex}
-    #player{font-size:48px;bottom:20px}
-    .pumpkin,.ghost{font-size:40px}
-    #topbar{gap:14px;font-size:16px}
-    #startBtn{padding:12px 18px;font-size:16px}
-  }
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;font-family:Inter,Arial,sans-serif;background:linear-gradient(#0b0406,#14040a);}
+#game{position:relative;width:100vw;height:100vh;overflow:hidden;}
+#player{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);font-size:56px;pointer-events:none;user-select:none}
+.pumpkin, .ghost{position:absolute;font-size:44px;user-select:none;pointer-events:none}
+.ghost{filter:drop-shadow(0 0 6px rgba(255,255,255,0.2))}
+#topbar{position:absolute;top:12px;left:50%;transform:translateX(-50%);display:flex;gap:28px;align-items:center;color:#fff;font-weight:600;font-size:18px;z-index:30}
+#levelbox{background:rgba(255,165,0,0.08);padding:8px 12px;border-radius:8px;border:1px solid rgba(255,165,0,0.12);color:#ffd08a}
+#scorebox,#timebox{background:rgba(255,255,255,0.03);padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.03)}
+#startBtn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:40;padding:14px 24px;background:orange;border:none;border-radius:10px;font-weight:700;cursor:pointer;color:#000;font-size:18px}
+#endScreen, #levelUpScreen{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:50;background:rgba(0,0,0,0.85);color:#fff;padding:22px 28px;border-radius:12px;border:2px solid rgba(255,165,0,0.12);text-align:center;display:none;width:min(420px,90vw)}
+#endScreen h2,#levelUpScreen h2{margin-bottom:10px}
+#endScreen p,#levelUpScreen p{margin:8px 0}
+#restartBtn,#nextLevelBtn,#copyBtn{margin-top:12px;padding:10px 18px;background:orange;border:none;border-radius:8px;font-weight:700;cursor:pointer}
+#mobileControls{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:none;gap:22px;z-index:40}
+#mobileControls button{padding:14px 22px;font-size:20px;border-radius:10px;border:none;background:rgba(255,165,0,0.95);cursor:pointer}
+@media (max-width:768px){
+  #mobileControls{display:flex}
+  #player{font-size:48px;bottom:20px}
+  .pumpkin,.ghost{font-size:40px}
+  #topbar{gap:14px;font-size:16px}
+  #startBtn{padding:12px 18px;font-size:16px}
+}
 </style>
 </head>
 <body>
-  <div id="game">
-    <div id="player">🧙‍♂️</div>
-  </div>
+<div id="game"><div id="player">🧙‍♂️</div></div>
 
-  <div id="topbar">
-    <div id="levelbox">Level: <span id="level">1</span></div>
-    <div id="scorebox">Pontos: <span id="score">0</span></div>
-    <div id="timebox">Tempo: <span id="time">30</span>s</div>
-  </div>
+<div id="topbar">
+  <div id="levelbox">Level: <span id="level">1</span></div>
+  <div id="scorebox">Pontos: <span id="score">0</span></div>
+  <div id="timebox">Tempo: <span id="time">30</span>s</div>
+</div>
 
-  <button id="startBtn">Começar</button>
+<button id="startBtn">Começar</button>
 
-  <div id="endScreen" role="dialog" aria-modal="true">
-    <h2 id="endTitle">Fim de Jogo</h2>
-    <p>Pontos: <strong id="finalScore">0</strong></p>
-    <p id="rewardCode" style="font-weight:700;color:#ffd08a"></p>
-    <button id="restartBtn">Jogar novamente</button>
-  </div>
+<div id="levelUpScreen">
+  <h2>🎉 Parabéns!</h2>
+  <p>Você completou este nível!</p>
+  <button id="nextLevelBtn">Ir para o próximo nível</button>
+</div>
 
-  <div id="mobileControls" aria-hidden="true">
-    <button id="leftBtn">◀️</button>
-    <button id="rightBtn">▶️</button>
-  </div>
+<div id="endScreen" role="dialog" aria-modal="true">
+  <h2 id="endTitle">Fim de Jogo</h2>
+  <p>Pontos: <strong id="finalScore">0</strong></p>
+  <p id="rewardCode" style="font-weight:700;color:#ffd08a"></p>
+  <button id="copyBtn">Copiar Código</button>
+  <button id="restartBtn">Jogar novamente</button>
+</div>
+
+<div id="mobileControls" aria-hidden="true">
+  <button id="leftBtn">◀️</button>
+  <button id="rightBtn">▶️</button>
+</div>
 
 <script>
-/* ---------- ELEMENTS ---------- */
 const game = document.getElementById('game');
 const player = document.getElementById('player');
 const startBtn = document.getElementById('startBtn');
 const endScreen = document.getElementById('endScreen');
 const restartBtn = document.getElementById('restartBtn');
-const scoreEl = document.getElementById('score');
-const timeEl = document.getElementById('time');
-const finalScoreEl = document.getElementById('finalScore');
+const copyBtn = document.getElementById('copyBtn');
 const rewardCodeEl = document.getElementById('rewardCode');
+const finalScoreEl = document.getElementById('finalScore');
 const levelEl = document.getElementById('level');
-
+const timeEl = document.getElementById('time');
+const scoreEl = document.getElementById('score');
 const mobileControls = document.getElementById('mobileControls');
 const leftBtn = document.getElementById('leftBtn');
 const rightBtn = document.getElementById('rightBtn');
+const levelUpScreen = document.getElementById('levelUpScreen');
+const nextLevelBtn = document.getElementById('nextLevelBtn');
 
-/* ---------- CONFIG & CODES ---------- */
-const PUMPKINS_PER_LEVEL = 10;
-const MAX_LEVEL = 5;
-const LEVEL_TO_REWARD = 5;
-const BASE_PUMPKIN_SPAWN_MS = 700;
-const BASE_PUMPKIN_FALL = 4;
-const BASE_GHOST_SPAWN_MS = 3000;
-const LEVEL_TIME = 30; // segundos por nível
+let score=0, timeLeft=30, level=1, pumpkinsThisLevel=0;
+let gameActive=false, playerX=window.innerWidth/2;
+const playerWidth=50, step=22;
+let pumpkinInterval, ghostInterval, gameInterval;
 
-// Lista de códigos (vários) — o jogo escolherá um aleatório quando o jogador alcançar o level 5
-const REWARD_CODES = [
-  "NTX-1A7G",
-  "NTX-B4K9",
-  "NTX-5Q2M",
-  "NTX-R8ZW",
-  "NTX-6T0P",
-  "NTX-X3N4",
-  "NTX-9V6S",
-  "NTX-C2H7",
-  "NTX-J8L1",
-  "NTX-Z5Y0"
-];
+const MAX_LEVEL=5, POINTS_PER_LEVEL=15;
+const BASE_PUMPKIN_SPAWN_MS=700, BASE_PUMPKIN_FALL=4;
+const BASE_GHOST_SPAWN_MS=3000;
 
-/* ---------- GAME STATE ---------- */
-let score = 0;
-let timeLeft = LEVEL_TIME;
-let level = 1;
-let pumpkinsCollectedThisLevel = 0;
+const REWARD_CODES=["NTX-1A7G","NTX-B4K9","NTX-5Q2M","NTX-R8ZW","NTX-6T0P","NTX-X3N4","NTX-9V6S","NTX-C2H7","NTX-J8L1","NTX-Z5Y0"];
+let currentCode="";
 
-let gameInterval = null;
-let pumpkinInterval = null;
-let ghostInterval = null;
-let gameActive = false;
-let playerX = window.innerWidth/2;
-const playerWidth = 50;
-let step = 22;
-
-/* ---------- START / RESET ---------- */
 function startGame(){
-  score = 0;
-  timeLeft = LEVEL_TIME;
-  level = 1;
-  pumpkinsCollectedThisLevel = 0;
-  playerX = window.innerWidth/2;
-  player.style.left = playerX + 'px';
-
-  scoreEl.textContent = score;
-  timeEl.textContent = timeLeft;
-  levelEl.textContent = level;
-  rewardCodeEl.textContent = '';
-  document.getElementById('endTitle').textContent = 'Fim de Jogo';
-  endScreen.style.display = 'none';
-  startBtn.style.display = 'none';
-  gameActive = true;
-
+  score=0;timeLeft=30;level=1;pumpkinsThisLevel=0;gameActive=true;
+  playerX=window.innerWidth/2;player.style.left=playerX+'px';
+  scoreEl.textContent=score;timeEl.textContent=timeLeft;levelEl.textContent=level;
+  rewardCodeEl.textContent='';endScreen.style.display='none';levelUpScreen.style.display='none';
+  startBtn.style.display='none';
   clearIntervals();
-  pumpkinInterval = setInterval(spawnPumpkin, spawnIntervalForLevel());
-  ghostInterval = setInterval(spawnGhost, BASE_GHOST_SPAWN_MS);
-  gameInterval = setInterval(updateTimer, 1000);
-
-  if(window.innerWidth <= 768){
-    mobileControls.style.display = 'flex';
-  } else {
-    mobileControls.style.display = 'none';
-  }
-
-  document.addEventListener('keydown', onKeyDown);
+  pumpkinInterval=setInterval(spawnPumpkin, spawnIntervalForLevel());
+  ghostInterval=setInterval(spawnGhost,BASE_GHOST_SPAWN_MS);
+  gameInterval=setInterval(updateTimer,1000);
+  document.addEventListener('keydown',onKeyDown);
+  if(window.innerWidth<=768) mobileControls.style.display='flex';
+  else mobileControls.style.display='none';
 }
 
-/* ---------- INPUT ---------- */
 function onKeyDown(e){
   if(!gameActive) return;
-  const key = String(e.key).toLowerCase();
-  if(key === 'a' || key === 'arrowleft') playerX -= step;
-  if(key === 'd' || key === 'arrowright') playerX += step;
-  clampAndApplyPlayer();
+  const key=e.key.toLowerCase();
+  if(key==='a'||key==='arrowleft') playerX-=step;
+  if(key==='d'||key==='arrowright') playerX+=step;
+  clampPlayer();
 }
+leftBtn.addEventListener('touchstart',()=>moveMobile(-step));
+rightBtn.addEventListener('touchstart',()=>moveMobile(step));
+leftBtn.addEventListener('mousedown',()=>moveMobile(-step));
+rightBtn.addEventListener('mousedown',()=>moveMobile(step));
+function moveMobile(delta){if(!gameActive) return;playerX+=delta;clampPlayer();}
+function clampPlayer(){if(playerX<0)playerX=0;if(playerX>window.innerWidth-playerWidth)playerX=window.innerWidth-playerWidth;player.style.left=playerX+'px';}
 
-leftBtn.addEventListener('touchstart', ()=> moveMobile(-step));
-rightBtn.addEventListener('touchstart', ()=> moveMobile(step));
-leftBtn.addEventListener('mousedown', ()=> moveMobile(-step));
-rightBtn.addEventListener('mousedown', ()=> moveMobile(step));
-
-function moveMobile(delta){
-  if(!gameActive) return;
-  playerX += delta;
-  clampAndApplyPlayer();
-}
-
-function clampAndApplyPlayer(){
-  const maxX = window.innerWidth - playerWidth;
-  if(playerX < 0) playerX = 0;
-  if(playerX > maxX) playerX = maxX;
-  player.style.left = playerX + 'px';
-}
-
-/* ---------- SPAWN PUMPKIN ---------- */
 function spawnPumpkin(){
   if(!gameActive) return;
-  const p = document.createElement('div');
-  p.className = 'pumpkin';
-  p.textContent = '🎃';
-  const left = Math.random() * (window.innerWidth - 40);
-  p.style.left = left + 'px';
-  p.style.top = '-60px';
+  const p=document.createElement('div');p.className='pumpkin';p.textContent='🎃';
+  const left=Math.random()*(window.innerWidth-40);p.style.left=left+'px';p.style.top='-60px';
   game.appendChild(p);
-
-  let pos = -60;
-  const speed = BASE_PUMPKIN_FALL + Math.random()*2 + (level-1)*0.6;
-
-  const id = setInterval(()=>{
-    if(!gameActive){ clearInterval(id); if(p.parentNode)p.remove(); return; }
-    pos += speed;
-    p.style.top = pos + 'px';
-
-    const pRect = p.getBoundingClientRect();
-    const playerRect = player.getBoundingClientRect();
-    if(pRect.bottom >= playerRect.top &&
-       pRect.left + 8 < playerRect.right &&
-       pRect.right - 8 > playerRect.left){
-      score++;
-      pumpkinsCollectedThisLevel++;
-      scoreEl.textContent = score;
-      checkLevelUp();
-      p.remove();
-      clearInterval(id);
-      return;
+  let pos=-60;const speed=BASE_PUMPKIN_FALL+Math.random()*2+(level-1)*0.6;
+  const id=setInterval(()=>{
+    if(!gameActive){clearInterval(id);if(p.parentNode)p.remove();return;}
+    pos+=speed;p.style.top=pos+'px';
+    const pRect=p.getBoundingClientRect(), playerRect=player.getBoundingClientRect();
+    if(pRect.bottom>=playerRect.top && pRect.left+8<playerRect.right && pRect.right-8>playerRect.left){
+      score++;pumpkinsThisLevel++;scoreEl.textContent=score;
+      if(pumpkinsThisLevel>=POINTS_PER_LEVEL) levelUp();
+      p.remove();clearInterval(id);return;
     }
-
-    if(pos > window.innerHeight){
-      p.remove();
-      clearInterval(id);
-    }
-  }, 28);
+    if(pos>window.innerHeight){p.remove();clearInterval(id);}
+  },28);
 }
 
-/* ---------- SPAWN GHOST (CAI ONDE SPAWNA) ---------- */
 function spawnGhost(){
   if(!gameActive) return;
-  const g = document.createElement('div');
-  g.className = 'ghost';
-  g.textContent = '👻';
-  const left = Math.random() * (window.innerWidth - 40);
-  g.style.left = left + 'px';
-  g.style.top = '-60px';
-  game.appendChild(g);
-
-  let pos = -60;
-  const speed = 3 + Math.random()*1.5 + (level-1)*0.35;
-
-  const id = setInterval(()=>{
-    if(!gameActive){ clearInterval(id); if(g.parentNode) g.remove(); return; }
-    pos += speed;
-    g.style.top = pos + 'px';
-
-    const gRect = g.getBoundingClientRect();
-    const playerRect = player.getBoundingClientRect();
-    if(gRect.bottom >= playerRect.top &&
-       gRect.top <= playerRect.bottom &&
-       gRect.left < playerRect.right &&
-       gRect.right > playerRect.left){
-      g.remove();
-      clearInterval(id);
-      endGame(true);
-      return;
+  const g=document.createElement('div');g.className='ghost';g.textContent='👻';
+  const left=Math.random()*(window.innerWidth-40);g.style.left=left+'px';g.style.top='-60px';
+  game.appendChild(g);let pos=-60;const speed=3+Math.random()*1.5+(level-1)*0.35;
+  const id=setInterval(()=>{
+    if(!gameActive){clearInterval(id);if(g.parentNode) g.remove();return;}
+    pos+=speed;g.style.top=pos+'px';
+    const gRect=g.getBoundingClientRect(), playerRect=player.getBoundingClientRect();
+    if(gRect.bottom>=playerRect.top && gRect.top<=playerRect.bottom && gRect.left<playerRect.right && gRect.right>playerRect.left){
+      g.remove();clearInterval(id);endGame(true);return;
     }
-
-    if(pos > window.innerHeight){
-      g.remove();
-      clearInterval(id);
-    }
-  }, 28);
+    if(pos>window.innerHeight){g.remove();clearInterval(id);}
+  },28);
 }
 
-/* ---------- NÍVEIS ---------- */
-function checkLevelUp(){
-  if(pumpkinsCollectedThisLevel >= PUMPKINS_PER_LEVEL){
-    pumpkinsCollectedThisLevel = 0;
-    level++;
-    // reset do cronômetro ao subir de nível
-    timeLeft = LEVEL_TIME;
-    timeEl.textContent = timeLeft;
-
-    levelEl.textContent = level;
-    // adaptar spawn (mais rápido)
-    clearInterval(pumpkinInterval);
-    if(level <= MAX_LEVEL) pumpkinInterval = setInterval(spawnPumpkin, spawnIntervalForLevel());
-
-    showLevelUpToast(level);
-
-    // se chegou no level final
-    if(level >= LEVEL_TO_REWARD){
-      // escolher código aleatório dentre a lista e mostrar + encerrar o jogo
-      const chosen = REWARD_CODES[Math.floor(Math.random() * REWARD_CODES.length)];
-      // delay pequeno para o jogador ver o level up
-      setTimeout(()=> {
-        endGame(false, true, chosen);
-      }, 500);
-    }
-  }
+function levelUp(){
+  gameActive=false;clearIntervals();
+  if(level>=MAX_LEVEL){showEndScreen(true);return;}
+  levelUpScreen.style.display='block';
 }
 
-function spawnIntervalForLevel(){
-  const base = BASE_PUMPKIN_SPAWN_MS;
-  const newVal = Math.max(250, base - (level-1)*90);
-  return newVal;
-}
-
-/* ---------- TIMER ---------- */
-function updateTimer(){
-  timeLeft--;
-  timeEl.textContent = timeLeft;
-  if(timeLeft <= 0){
-    endGame(false);
-  }
-}
-
-/* ---------- END GAME ---------- */
-/* byGhost = true se morreu por fantasma */
-/* showReward = true se mostrar código de level 5 */
-/* rewardCodeParam = código específico a mostrar (quando showReward true) */
-function endGame(byGhost=false, showReward=false, rewardCodeParam=''){
-  gameActive = false;
+nextLevelBtn.addEventListener('click',()=>{
+  level++;pumpkinsThisLevel=0;timeLeft=30;levelEl.textContent=level;timeEl.textContent=timeLeft;
+  levelUpScreen.style.display='none';gameActive=true;
   clearIntervals();
-  document.removeEventListener('keydown', onKeyRemover);
-  // limpar itens na tela
-  document.querySelectorAll('.pumpkin').forEach(n=>n.remove());
-  document.querySelectorAll('.ghost').forEach(n=>n.remove());
-
-  finalScoreEl.textContent = score;
-  if(byGhost){
-    rewardCodeEl.textContent = 'Você tomou um susto! 😱';
-    document.getElementById('endTitle').textContent = 'Você tomou um susto!';
-  } else if(showReward){
-    rewardCodeEl.textContent = '🎉 Parabéns! Código: ' + rewardCodeParam;
-    document.getElementById('endTitle').textContent = 'Parabéns!';
-  } else {
-    rewardCodeEl.textContent = '';
-    document.getElementById('endTitle').textContent = 'Fim de Jogo';
-  }
-
-  endScreen.style.display = 'block';
-  startBtn.style.display = 'none';
-}
-
-/* helper para remoção correta do listener (por compatibilidade) */
-function onKeyWrapper(e){ onKeyDown(e); }
-function onKeyRemover(e){ /* placeholder for removal - we'll remove by reference below */ }
-
-/* ---------- HELPERS ---------- */
-function clearIntervals(){
-  clearInterval(gameInterval);
-  clearInterval(pumpkinInterval);
-  clearInterval(ghostInterval);
-  gameInterval = pumpkinInterval = ghostInterval = null;
-}
-function showLevelUpToast(lvl){
-  const prev = document.title;
-  document.title = `Level ${lvl} 🎃`;
-  setTimeout(()=> document.title = prev, 1200);
-}
-
-/* ---------- UI HOOKS ---------- */
-startBtn.addEventListener('click', startGame);
-restartBtn.addEventListener('click', ()=>{
-  endScreen.style.display = 'none';
-  startGame();
+  pumpkinInterval=setInterval(spawnPumpkin, spawnIntervalForLevel());
+  ghostInterval=setInterval(spawnGhost,BASE_GHOST_SPAWN_MS);
 });
 
-/* ensure keyboard listener removal works: use named function reference */
-function onKeyRemoverRef(e){ if(!gameActive) return; }
-function addKeyListener(){ document.addEventListener('keydown', onKeyDown); }
-function removeKeyListener(){ document.removeEventListener('keydown', onKeyDown); }
+function spawnIntervalForLevel(){return Math.max(250, BASE_PUMPKIN_SPAWN_MS-(level-1)*90);}
+function updateTimer(){if(!gameActive) return;timeLeft--;timeEl.textContent=timeLeft;if(timeLeft<=0) endGame(false);}
+function clearIntervals(){clearInterval(gameInterval);clearInterval(pumpkinInterval);clearInterval(ghostInterval);}
+function endGame(byGhost=false){gameActive=false;clearIntervals();document.querySelectorAll('.pumpkin').forEach(n=>n.remove());document.querySelectorAll('.ghost').forEach(n=>n.remove());finalScoreEl.textContent=score;
+  if(byGhost){rewardCodeEl.textContent='Você tomou um susto! 😱';document.getElementById('endTitle').textContent='Você tomou um susto!';copyBtn.style.display='none';}
+  else{currentCode=REWARD_CODES[Math.floor(Math.random()*REWARD_CODES.length)];
+    rewardCodeEl.textContent='🎉 Código: '+currentCode;
+    copyBtn.style.display='inline-block';
+    document.getElementById('endTitle').textContent='Parabéns!';}
+  endScreen.style.display='block';
+}
 
-/* add/remove using these helpers */
-function addListeners(){ addKeyListener(); }
-function removeListeners(){ removeKeyListener(); }
-
-/* resize handling */
-window.addEventListener('resize', ()=> {
-  if(window.innerWidth <= 768 && gameActive) mobileControls.style.display = 'flex';
-  else mobileControls.style.display = 'none';
+copyBtn.addEventListener('click',()=>{
+  navigator.clipboard.writeText(currentCode).then(()=>alert('Código copiado!'));
 });
 
-/* prevent mobile scroll while playing */
-document.addEventListener('touchmove',(e)=>{ if(gameActive) e.preventDefault(); }, {passive:false});
+startBtn.addEventListener('click',startGame);
+restartBtn.addEventListener('click',()=>{endScreen.style.display='none';startGame();});
 
-/* inicial */
-startBtn.style.display = 'block';
+window.addEventListener('resize',()=>{if(window.innerWidth<=768 && gameActive) mobileControls.style.display='flex';else mobileControls.style.display='none';});
+document.addEventListener('touchmove',(e)=>{if(gameActive)e.preventDefault();},{passive:false});
+
+// Bloquear clique esquerdo
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('mousedown', e => {if(e.button===0)e.preventDefault();}, true);
 </script>
 </body>
 </html>
