@@ -79,7 +79,6 @@ function spawnPumpkin() {
   pumpkin.textContent = "🎃";
   pumpkin.style.left = Math.random() * (window.innerWidth - 40) + "px";
   pumpkin.style.top = "-50px";
-
   game.appendChild(pumpkin);
 
   let pos = -50;
@@ -140,7 +139,6 @@ function spawnGhost() {
     const ghostRect = ghost.getBoundingClientRect();
     const playerRect = player.getBoundingClientRect();
 
-    // colisão com fantasma
     if (
       ghostRect.bottom >= playerRect.top &&
       ghostRect.top <= playerRect.bottom &&
