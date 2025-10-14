@@ -83,7 +83,8 @@ let gameActive=false,playerX=window.innerWidth/2;
 const playerWidth=50,step=22;
 let pumpkinInterval,ghostInterval,gameInterval;
 const MAX_LEVEL=5,POINTS_PER_LEVEL=15;
-const BASE_PUMPKIN_SPAWN_MS=900, BASE_PUMPKIN_FALL=3.5, BASE_GHOST_SPAWN_MS=4000;
+// spawn mais rápido
+const BASE_PUMPKIN_SPAWN_MS=400, BASE_PUMPKIN_FALL=5, BASE_GHOST_SPAWN_MS=3000;
 const REWARD_CODES=["NTX-1A7G","NTX-B4K9","NTX-5Q2M","NTX-R8ZW","NTX-6T0P","NTX-X3N4","NTX-9V6S","NTX-C2H7","NTX-J8L1","NTX-Z5Y0"];
 let currentCode="";
 
@@ -123,7 +124,7 @@ function spawnPumpkin(){
   const p=document.createElement('div');p.className='pumpkin';p.textContent='🎃';
   const left=Math.random()*(window.innerWidth-40);p.style.left=left+'px';p.style.top='-60px';
   game.appendChild(p);
-  let pos=-60;const speed=BASE_PUMPKIN_FALL+Math.random()*1.2;
+  let pos=-60;const speed=BASE_PUMPKIN_FALL+Math.random()*2;
   const id=setInterval(()=>{
     if(!gameActive){clearInterval(id);if(p.parentNode)p.remove();return;}
     pos+=speed;p.style.top=pos+'px';
