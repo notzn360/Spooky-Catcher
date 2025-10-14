@@ -1,34 +1,353 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Spooky Quest</title>
-<link rel="stylesheet" href="style.css">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Spooky Quest — Pumpkin Wizard</title>
+<style>
+  /* ---------- RESET & BASE ---------- */
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;font-family:Inter,Arial,Helvetica,sans-serif;background:linear-gradient(#0b0406,#14040a);}
+  /* ---------- GAME AREA ---------- */
+  #game{position:relative;width:100vw;height:100vh;overflow:hidden;}
+  #player{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);font-size:56px;pointer-events:none;user-select:none}
+  .pumpkin, .ghost{position:absolute;font-size:44px;user-select:none;pointer-events:none}
+  .ghost{filter:drop-shadow(0 0 6px rgba(255,255,255,0.2))}
+  /* ---------- UI ---------- */
+  #topbar{position:absolute;top:12px;left:50%;transform:translateX(-50%);display:flex;gap:28px;align-items:center;color:#fff;font-weight:600;font-size:18px;z-index:30}
+  #levelbox{background:rgba(255,165,0,0.08);padding:8px 12px;border-radius:8px;border:1px solid rgba(255,165,0,0.12);color:#ffd08a}
+  #scorebox,#timebox{background:rgba(255,255,255,0.03);padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.03)}
+  /* ---------- START BTN ---------- */
+  #startBtn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:40;padding:14px 24px;background:orange;border:none;border-radius:10px;font-weight:700;cursor:pointer;color:#000;font-size:18px}
+  /* ---------- END SCREEN ---------- */
+  #endScreen{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:50;background:rgba(0,0,0,0.85);color:#fff;padding:22px 28px;border-radius:12px;border:2px solid rgba(255,165,0,0.12);text-align:center;display:none;width:min(420px,90vw)}
+  #endScreen h2{margin-bottom:10px}
+  #endScreen p{margin:8px 0}
+  #restartBtn{margin-top:12px;padding:10px 18px;background:orange;border:none;border-radius:8px;font-weight:700;cursor:pointer}
+  /* ---------- MOBILE CONTROLS ---------- */
+  #mobileControls{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:none;gap:22px;z-index:40}
+  #mobileControls button{padding:14px 22px;font-size:20px;border-radius:10px;border:none;background:rgba(255,165,0,0.95);cursor:pointer}
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:768px){
+    #mobileControls{display:flex}
+    #player{font-size:48px;bottom:20px}
+    .pumpkin,.ghost{font-size:40px}
+    #topbar{gap:14px;font-size:16px}
+    #startBtn{padding:12px 18px;font-size:16px}
+  }
+</style>
 </head>
 <body>
   <div id="game">
     <div id="player">🧙‍♂️</div>
   </div>
 
-  <div id="ui">
-    <div>Score: <span id="score">0</span></div>
-    <div>Time: <span id="time">30</span></div>
-    <button id="startBtn">Começar</button>
+  <div id="topbar">
+    <div id="levelbox">Level: <span id="level">1</span></div>
+    <div id="scorebox">Pontos: <span id="score">0</span></div>
+    <div id="timebox">Tempo: <span id="time">30</span>s</div>
   </div>
 
-  <div id="endScreen">
-    <h2>Fim de Jogo!</h2>
-    <p>Pontos: <span id="finalScore">0</span></p>
-    <p id="rewardCode"></p>
+  <button id="startBtn">Começar</button>
+
+  <div id="endScreen" role="dialog" aria-modal="true">
+    <h2 id="endTitle">Fim de Jogo</h2>
+    <p>Pontos: <strong id="finalScore">0</strong></p>
+    <p id="rewardCode" style="font-weight:700;color:#ffd08a"></p>
     <button id="restartBtn">Jogar novamente</button>
   </div>
 
-  <div id="mobileControls">
+  <div id="mobileControls" aria-hidden="true">
     <button id="leftBtn">◀️</button>
     <button id="rightBtn">▶️</button>
   </div>
 
-  <script src="script.js"></script>
+<script>
+/* ---------- ELEMENTS ---------- */
+const game = document.getElementById('game');
+const player = document.getElementById('player');
+const startBtn = document.getElementById('startBtn');
+const endScreen = document.getElementById('endScreen');
+const restartBtn = document.getElementById('restartBtn');
+const scoreEl = document.getElementById('score');
+const timeEl = document.getElementById('time');
+const finalScoreEl = document.getElementById('finalScore');
+const rewardCodeEl = document.getElementById('rewardCode');
+const levelEl = document.getElementById('level');
+
+const mobileControls = document.getElementById('mobileControls');
+const leftBtn = document.getElementById('leftBtn');
+const rightBtn = document.getElementById('rightBtn');
+
+/* ---------- GAME STATE ---------- */
+let score = 0;
+let timeLeft = 30;
+let level = 1;
+let pumpkinsCollectedThisLevel = 0;
+
+let gameInterval = null;
+let pumpkinInterval = null;
+let ghostInterval = null;
+let gameActive = false;
+let playerX = window.innerWidth/2;
+const playerWidth = 50; // usada para colisão approx
+let step = 22;
+
+/* ---------- CONFIG ---------- */
+const PUMPKINS_PER_LEVEL = 10;
+const LEVEL_TO_REWARD = 5;
+const BASE_PUMPKIN_SPAWN_MS = 700; // diminuído por nível
+const BASE_PUMPKIN_FALL = 4; // + random
+const BASE_GHOST_SPAWN_MS = 3000;
+
+/* ---------- START / RESET ---------- */
+function startGame(){
+  // reset estado
+  score = 0;
+  timeLeft = 30;
+  level = 1;
+  pumpkinsCollectedThisLevel = 0;
+  playerX = window.innerWidth/2;
+  player.style.left = playerX + 'px';
+
+  scoreEl.textContent = score;
+  timeEl.textContent = timeLeft;
+  levelEl.textContent = level;
+  rewardCodeEl.textContent = '';
+  endScreen.style.display = 'none';
+  startBtn.style.display = 'none';
+  gameActive = true;
+
+  // iniciar loops
+  clearIntervals();
+  pumpkinInterval = setInterval(spawnPumpkin, spawnIntervalForLevel());
+  ghostInterval = setInterval(spawnGhost, BASE_GHOST_SPAWN_MS);
+  gameInterval = setInterval(updateTimer, 1000);
+
+  // mobile controls visibilidade
+  if(window.innerWidth <= 768){
+    mobileControls.style.display = 'flex';
+  } else {
+    mobileControls.style.display = 'none';
+  }
+
+  // key listener
+  document.addEventListener('keydown', onKey);
+}
+
+/* ---------- INPUT ---------- */
+function onKey(e){
+  if(!gameActive) return;
+  const key = String(e.key).toLowerCase();
+  if(key === 'a' || key === 'arrowleft'){
+    playerX -= step;
+  } else if(key === 'd' || key === 'arrowright'){
+    playerX += step;
+  }
+  clampAndApplyPlayer();
+}
+
+leftBtn.addEventListener('touchstart', ()=> moveMobile(-step));
+rightBtn.addEventListener('touchstart', ()=> moveMobile(step));
+leftBtn.addEventListener('mousedown', ()=> moveMobile(-step));
+rightBtn.addEventListener('mousedown', ()=> moveMobile(step));
+
+function moveMobile(delta){
+  if(!gameActive) return;
+  playerX += delta;
+  clampAndApplyPlayer();
+}
+
+function clampAndApplyPlayer(){
+  const maxX = window.innerWidth - playerWidth;
+  if(playerX < 0) playerX = 0;
+  if(playerX > maxX) playerX = maxX;
+  player.style.left = playerX + 'px';
+}
+
+/* ---------- SPAWN PUMPKIN ---------- */
+function spawnPumpkin(){
+  if(!gameActive) return;
+  const p = document.createElement('div');
+  p.className = 'pumpkin';
+  p.textContent = '🎃';
+  const left = Math.random() * (window.innerWidth - 40);
+  p.style.left = left + 'px';
+  p.style.top = '-60px';
+  game.appendChild(p);
+
+  let pos = -60;
+  const speed = BASE_PUMPKIN_FALL + Math.random()*2 + (level-1)*0.6;
+
+  const id = setInterval(()=>{
+    if(!gameActive){ clearInterval(id); if(p.parentNode)p.remove(); return; }
+    pos += speed;
+    p.style.top = pos + 'px';
+
+    // colisão com player
+    const pRect = p.getBoundingClientRect();
+    const playerRect = player.getBoundingClientRect();
+    if(pRect.bottom >= playerRect.top &&
+       pRect.left + 8 < playerRect.right &&
+       pRect.right - 8 > playerRect.left){
+      // pegou
+      score++;
+      pumpkinsCollectedThisLevel++;
+      scoreEl.textContent = score;
+      checkLevelUp();
+      p.remove();
+      clearInterval(id);
+      return;
+    }
+
+    if(pos > window.innerHeight){
+      p.remove();
+      clearInterval(id);
+    }
+  }, 28);
+}
+
+/* ---------- SPAWN GHOST (CAI NO LUGAR) ---------- */
+function spawnGhost(){
+  if(!gameActive) return;
+  const g = document.createElement('div');
+  g.className = 'ghost';
+  g.textContent = '👻';
+  const left = Math.random() * (window.innerWidth - 40);
+  g.style.left = left + 'px';
+  g.style.top = '-60px';
+  game.appendChild(g);
+
+  let pos = -60;
+  const speed = 3 + Math.random()*1.5 + (level-1)*0.35;
+
+  const id = setInterval(()=>{
+    if(!gameActive){ clearInterval(id); if(g.parentNode) g.remove(); return; }
+    pos += speed;
+    g.style.top = pos + 'px';
+
+    // colisão fantasma
+    const gRect = g.getBoundingClientRect();
+    const playerRect = player.getBoundingClientRect();
+    if(gRect.bottom >= playerRect.top &&
+       gRect.top <= playerRect.bottom &&
+       gRect.left < playerRect.right &&
+       gRect.right > playerRect.left){
+      // tocou fantasma -> perdeu por susto
+      g.remove();
+      clearInterval(id);
+      endGame(true);
+      return;
+    }
+
+    if(pos > window.innerHeight){
+      g.remove();
+      clearInterval(id);
+    }
+  }, 28);
+}
+
+/* ---------- NÍVEL ---------- */
+function checkLevelUp(){
+  if(pumpkinsCollectedThisLevel >= PUMPKINS_PER_LEVEL){
+    pumpkinsCollectedThisLevel = 0;
+    level++;
+    levelEl.textContent = level;
+    // aumenta velocidade: ajustar intervalos
+    clearInterval(pumpkinInterval);
+    pumpkinInterval = setInterval(spawnPumpkin, spawnIntervalForLevel());
+    // pequeno flash/aviso
+    showLevelUpToast(level);
+    // se chegou no level de recompensa
+    if(level === LEVEL_TO_REWARD){
+      // mostrar código no endScreen (mas não encerra o jogo; decide você: aqui vamos mostrar código e continuar)
+      // vou mostrar um popup especial e travar o jogo pra garantir que o jogador receba o código.
+      setTimeout(()=> {
+        // travar e mostrar popup de recompensa
+        endGame(false, true); // byGhost=false, showReward=true
+      }, 500);
+    }
+  }
+}
+
+function spawnIntervalForLevel(){
+  // diminui intervalo conforme sobe de level (com limite)
+  const base = BASE_PUMPKIN_SPAWN_MS;
+  const newVal = Math.max(250, base - (level-1)*90);
+  return newVal;
+}
+
+/* ---------- TIMER ---------- */
+function updateTimer(){
+  timeLeft--;
+  timeEl.textContent = timeLeft;
+  if(timeLeft <= 0){
+    endGame(false);
+  }
+}
+
+/* ---------- END GAME ---------- */
+/* byGhost = true se morreu por fantasma */
+/* showReward param opcional para quando atingir level 5 */
+function endGame(byGhost=false, showReward=false){
+  gameActive = false;
+  clearIntervals();
+  document.removeEventListener('keydown', onKey);
+  // limpar itens na tela
+  document.querySelectorAll('.pumpkin').forEach(n=>n.remove());
+  document.querySelectorAll('.ghost').forEach(n=>n.remove());
+
+  finalScoreEl.textContent = score;
+  if(byGhost){
+    rewardCodeEl.textContent = 'Você tomou um susto! 😱';
+    document.getElementById('endTitle').textContent = 'Você tomou um susto!';
+  } else if(showReward || level >= LEVEL_TO_REWARD){
+    rewardCodeEl.textContent = '🎉 Parabéns! Código: NTX-2025';
+    document.getElementById('endTitle').textContent = 'Parabéns!';
+  } else {
+    rewardCodeEl.textContent = '';
+    document.getElementById('endTitle').textContent = 'Fim de Jogo';
+  }
+
+  // mostrar end screen e garantir start escondido
+  endScreen.style.display = 'block';
+  startBtn.style.display = 'none';
+}
+
+/* ---------- HELPERS ---------- */
+function clearIntervals(){
+  clearInterval(gameInterval);
+  clearInterval(pumpkinInterval);
+  clearInterval(ghostInterval);
+  gameInterval = pumpkinInterval = ghostInterval = null;
+}
+
+function showLevelUpToast(lvl){
+  // aviso simples com mudança de título temporária
+  const prev = document.title;
+  document.title = `Level ${lvl} 🎃`;
+  setTimeout(()=> document.title = prev, 1200);
+}
+
+/* ---------- UI HOOKS ---------- */
+startBtn.addEventListener('click', startGame);
+restartBtn.addEventListener('click', ()=>{
+  endScreen.style.display = 'none';
+  startGame();
+});
+
+/* accessibility: esconder start quando jogando e voltar se não */
+window.addEventListener('resize', ()=> {
+  // ajustar mobile controls se o usuário redimensionar
+  if(window.innerWidth <= 768 && gameActive) mobileControls.style.display = 'flex';
+  else mobileControls.style.display = 'none';
+});
+
+/* Prevent accidental text selection on mobile drag */
+document.addEventListener('touchmove',(e)=>{ e.preventDefault(); }, {passive:false});
+
+/* Inicial: deixar start visível */
+startBtn.style.display = 'block';
+</script>
 </body>
 </html>
