@@ -11,7 +11,7 @@ let score = 0;
 let timeLeft = 30;
 let gameInterval;
 let pumpkinInterval;
-let playerX = 180;
+let playerX = 50; // posição inicial (em %)
 let gameActive = false;
 
 function startGame() {
@@ -23,35 +23,51 @@ function startGame() {
   startBtn.classList.add("hidden");
   endScreen.classList.add("hidden");
 
+  playerX = 50;
+  player.style.left = playerX + "%";
+
   gameInterval = setInterval(updateTimer, 1000);
-  pumpkinInterval = setInterval(spawnPumpkin, 700);
+  pumpkinInterval = setInterval(spawnPumpkin, 800);
 
   document.addEventListener("keydown", movePlayer);
 }
 
 function movePlayer(e) {
   if (!gameActive) return;
-  if (e.key === "ArrowLeft" && playerX > 0) {
-    playerX -= 20;
-  } else if (e.key === "ArrowRight" && playerX < 360) {
-    playerX += 20;
+  if (e.key === "ArrowLeft" && playerX > 5) {
+    playerX -= 5;
+  } else if (e.key === "ArrowRight" && playerX < 95) {
+    playerX += 5;
   }
-  player.style.left = playerX + "px";
+  player.style.left = playerX + "%";
 }
 
 function spawnPumpkin() {
   const pumpkin = document.createElement("div");
   pumpkin.classList.add("pumpkin");
   pumpkin.textContent = "🎃";
-  pumpkin.style.left = Math.random() * 370 + "px";
-  pumpkin.style.animationDuration = "2.5s";
+  pumpkin.style.left = Math.random() * 90 + "%";
 
   game.appendChild(pumpkin);
 
-  let fall = setInterval(() => {
+  let pos = -30;
+  const fallSpeed = 4 + Math.random() * 3;
+
+  const fall = setInterval(() => {
+    if (!gameActive) {
+      pumpkin.remove();
+      clearInterval(fall);
+      return;
+    }
+
+    pos += fallSpeed;
+    pumpkin.style.top = pos + "px";
+
+    const gameHeight = game.clientHeight;
     const pumpkinRect = pumpkin.getBoundingClientRect();
     const playerRect = player.getBoundingClientRect();
 
+    // colisão
     if (
       pumpkinRect.bottom >= playerRect.top &&
       pumpkinRect.left < playerRect.right &&
@@ -63,11 +79,12 @@ function spawnPumpkin() {
       clearInterval(fall);
     }
 
-    if (pumpkinRect.top > 400) {
+    // saiu da tela
+    if (pos > gameHeight) {
       pumpkin.remove();
       clearInterval(fall);
     }
-  }, 50);
+  }, 30);
 }
 
 function updateTimer() {
@@ -94,7 +111,7 @@ function restartGame() {
 
 function generateRewardCode(points) {
   if (points >= 15) {
-    return "BOO-" + Math.floor(Math.random() * 9000 + 1000);
+    return "SPOOK-" + Math.floor(Math.random() * 9000 + 1000);
   }
   return "Tente fazer +15 pontos!";
 }
