@@ -131,7 +131,8 @@ function spawnPumpkin(){
     const pRect=p.getBoundingClientRect(), playerRect=player.getBoundingClientRect();
     if(pRect.bottom>=playerRect.top && pRect.left+8<playerRect.right && pRect.right-8>playerRect.left){
       score++;pumpkinsThisLevel++;scoreEl.textContent=score;
-      if(pumpkinsThisLevel>=POINTS_PER_LEVEL) levelUp();
+      // Nível 5: não sobe automaticamente, apenas registra pontos
+      if(level<MAX_LEVEL && pumpkinsThisLevel>=POINTS_PER_LEVEL) levelUp();
       p.remove();clearInterval(id);return;
     }
     if(pos>window.innerHeight){p.remove();clearInterval(id);}
@@ -172,32 +173,40 @@ nextLevelBtn.addEventListener('click',()=>{
 function spawnIntervalForLevel(){return Math.max(250, BASE_PUMPKIN_SPAWN_MS-(level-1)*90);}
 function updateTimer(){if(!gameActive) return;timeLeft--;timeEl.textContent=timeLeft;if(timeLeft<=0) endGame(false);}
 function clearIntervals(){clearInterval(gameInterval);clearInterval(pumpkinInterval);clearInterval(ghostInterval);}
+
 function showEndScreen(){
-  gameActive=false;clearIntervals();document.querySelectorAll('.pumpkin').forEach(n=>n.remove());document.querySelectorAll('.ghost').forEach(n=>n.remove());
-  finalScoreEl.textContent=score;
-  currentCode=REWARD_CODES[Math.floor(Math.random()*REWARD_CODES.length)];
-  rewardCodeEl.textContent='🎉 Código: '+currentCode;
-  copyBtn.style.display='inline-block';
-  document.getElementById('endTitle').textContent='Parabéns!';
+  gameActive = false;
+  clearIntervals();
+  document.querySelectorAll('.pumpkin').forEach(n => n.remove());
+  document.querySelectorAll('.ghost').forEach(n => n.remove());
+  finalScoreEl.textContent = score;
+
+  // Prêmio só aparece no nível 5 se pegou 15 abóboras
+  if(level === MAX_LEVEL && pumpkinsThisLevel >= POINTS_PER_LEVEL){
+    currentCode = REWARD_CODES[Math.floor(Math.random() * REWARD_CODES.length)];
+    rewardCodeEl.textContent = '🎉 Código: ' + currentCode;
+    copyBtn.style.display = 'inline-block';
+    document.getElementById('endTitle').textContent = 'Parabéns!';
+  } else {
+    rewardCodeEl.textContent = '';
+    copyBtn.style.display='none';
+    document.getElementById('endTitle').textContent = 'Fim de Jogo';
+  }
+
   endScreen.style.display='block';
 }
+
 function endGame(byGhost=false){
-  gameActive=false;clearIntervals();document.querySelectorAll('.pumpkin').forEach(n=>n.remove());document.querySelectorAll('.ghost').forEach(n=>n.remove());
+  gameActive=false;
+  clearIntervals();
+  document.querySelectorAll('.pumpkin').forEach(n=>n.remove());
+  document.querySelectorAll('.ghost').forEach(n=>n.remove());
   finalScoreEl.textContent=score;
-  if(byGhost){rewardCodeEl.textContent='Você tomou um susto! 😱';document.getElementById('endTitle').textContent='Você tomou um susto!';copyBtn.style.display='none';}
-  else{endScreen.style.display='block';copyBtn.style.display='none';document.getElementById('endTitle').textContent='Fim de Jogo';}
-}
 
-copyBtn.addEventListener('click',()=>{navigator.clipboard.writeText(currentCode).then(()=>alert('Código copiado!'));});
-startBtn.addEventListener('click',startGame);
-restartBtn.addEventListener('click',()=>{endScreen.style.display='none';startGame();});
+  if(byGhost){
+    rewardCodeEl.textContent='Você tomou um susto! 😱';
+    document.getElementById('endTitle').textContent='Você tomou um susto!';
+    copyBtn.style.display='none';
+  } else {
+    showEndScreen();
 
-window.addEventListener('resize',()=>{if(window.innerWidth<=768 && gameActive) mobileControls.style.display='flex';else mobileControls.style.display='none';});
-document.addEventListener('touchmove',(e)=>{if(gameActive)e.preventDefault();},{passive:false});
-
-// Bloquear clique esquerdo
-document.addEventListener('contextmenu', e => e.preventDefault());
-document.addEventListener('mousedown', e => {if(e.button===0)e.preventDefault();}, true);
-</script>
-</body>
-</html>
