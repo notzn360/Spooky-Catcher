@@ -43,10 +43,12 @@ function startGame() {
 
 function movePlayer(e) {
   if (!gameActive) return;
-  if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") {
+
+  const key = e.key.toLowerCase(); // transforma a tecla em minúscula
+  if (key === "a" || key === "arrowleft") {
     playerX -= step;
     if (playerX < 0) playerX = 0;
-  } else if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") {
+  } else if (key === "d" || key === "arrowright") {
     playerX += step;
     if (playerX > window.innerWidth - 50) playerX = window.innerWidth - 50;
   }
