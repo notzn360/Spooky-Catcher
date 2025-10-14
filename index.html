@@ -36,7 +36,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:Inter,Arial,sans-se
 <div id="topbar">
   <div id="levelbox">Level: <span id="level">1</span></div>
   <div id="scorebox">Pontos: <span id="score">0</span></div>
-  <div id="timebox">Tempo: <span id="time">30</span>s</div>
+  <div id="timebox">Tempo: <span id="time">60</span>s</div>
 </div>
 
 <button id="startBtn">Começar</button>
@@ -78,18 +78,18 @@ const rightBtn=document.getElementById('rightBtn');
 const levelUpScreen=document.getElementById('levelUpScreen');
 const nextLevelBtn=document.getElementById('nextLevelBtn');
 
-let score=0,timeLeft=30,level=1,pumpkinsThisLevel=0;
+let score=0,timeLeft=60,level=1,pumpkinsThisLevel=0;
 let gameActive=false,playerX=window.innerWidth/2;
-const playerWidth=50,step=22;
+const playerWidth=50,step=35; // jogador rápido
 let pumpkinInterval,ghostInterval,gameInterval;
 const MAX_LEVEL=5,POINTS_PER_LEVEL=15;
-// spawn mais rápido
-const BASE_PUMPKIN_SPAWN_MS=400, BASE_PUMPKIN_FALL=5, BASE_GHOST_SPAWN_MS=3000;
+// spawn bem rápido e mais abóboras
+const BASE_PUMPKIN_SPAWN_MS=250, BASE_PUMPKIN_FALL=7, BASE_GHOST_SPAWN_MS=5000;
 const REWARD_CODES=["NTX-1A7G","NTX-B4K9","NTX-5Q2M","NTX-R8ZW","NTX-6T0P","NTX-X3N4","NTX-9V6S","NTX-C2H7","NTX-J8L1","NTX-Z5Y0"];
 let currentCode="";
 
 function startGame(){
-  score=0;timeLeft=30;level=1;pumpkinsThisLevel=0;gameActive=true;
+  score=0;timeLeft=60;level=1;pumpkinsThisLevel=0;gameActive=true;
   playerX=window.innerWidth/2;player.style.left=playerX+'px';
   scoreEl.textContent=score;timeEl.textContent=timeLeft;levelEl.textContent=level;
   rewardCodeEl.textContent='';endScreen.style.display='none';levelUpScreen.style.display='none';
@@ -135,14 +135,14 @@ function spawnPumpkin(){
       p.remove();clearInterval(id);return;
     }
     if(pos>window.innerHeight){p.remove();clearInterval(id);}
-  },30);
+  },20);
 }
 
 function spawnGhost(){
   if(!gameActive) return;
   const g=document.createElement('div');g.className='ghost';g.textContent='👻';
   const left=Math.random()*(window.innerWidth-40);g.style.left=left+'px';g.style.top='-60px';
-  game.appendChild(g);let pos=-60;const speed=2.5+Math.random()*1;
+  game.appendChild(g);let pos=-60;const speed=1.5; // ghost lento
   const id=setInterval(()=>{
     if(!gameActive){clearInterval(id);if(g.parentNode)g.remove();return;}
     pos+=speed;g.style.top=pos+'px';
@@ -155,14 +155,14 @@ function spawnGhost(){
 }
 
 function levelUp(){
-  gameActive=false;clearIntervals();pumpkinsThisLevel=0;timeLeft=30;timeEl.textContent=timeLeft;
+  gameActive=false;clearIntervals();pumpkinsThisLevel=0;timeLeft=60;timeEl.textContent=timeLeft;
   if(level>=MAX_LEVEL){showEndScreen();return;}
   levelUpScreen.style.display='block';
 }
 
 nextLevelBtn.addEventListener('click',()=>{
   level++;levelEl.textContent=level;levelUpScreen.style.display='none';
-  score=0;scoreEl.textContent=score;timeLeft=30;timeEl.textContent=timeLeft;
+  score=0;scoreEl.textContent=score;timeLeft=60;timeEl.textContent=timeLeft;
   gameActive=true;
   clearIntervals();
   pumpkinInterval=setInterval(spawnPumpkin, BASE_PUMPKIN_SPAWN_MS);
