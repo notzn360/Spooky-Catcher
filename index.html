@@ -78,12 +78,12 @@ const rightBtn=document.getElementById('rightBtn');
 const levelUpScreen=document.getElementById('levelUpScreen');
 const nextLevelBtn=document.getElementById('nextLevelBtn');
 
-let score=0, timeLeft=30, level=1, pumpkinsThisLevel=0;
-let gameActive=false, playerX=window.innerWidth/2;
-const playerWidth=50, step=22;
-let pumpkinInterval, ghostInterval, gameInterval;
-const MAX_LEVEL=5, POINTS_PER_LEVEL=15;
-const BASE_PUMPKIN_SPAWN_MS=700, BASE_PUMPKIN_FALL=4, BASE_GHOST_SPAWN_MS=3000;
+let score=0,timeLeft=30,level=1,pumpkinsThisLevel=0;
+let gameActive=false,playerX=window.innerWidth/2;
+const playerWidth=50,step=22;
+let pumpkinInterval,ghostInterval,gameInterval;
+const MAX_LEVEL=5,POINTS_PER_LEVEL=15;
+const BASE_PUMPKIN_SPAWN_MS=900, BASE_PUMPKIN_FALL=3.5, BASE_GHOST_SPAWN_MS=4000;
 const REWARD_CODES=["NTX-1A7G","NTX-B4K9","NTX-5Q2M","NTX-R8ZW","NTX-6T0P","NTX-X3N4","NTX-9V6S","NTX-C2H7","NTX-J8L1","NTX-Z5Y0"];
 let currentCode="";
 
@@ -95,15 +95,14 @@ function startGame(){
   startBtn.style.display='none';
   clearIntervals();
   pumpkinInterval=setInterval(spawnPumpkin, BASE_PUMPKIN_SPAWN_MS);
-  ghostInterval=setInterval(spawnGhost,BASE_GHOST_SPAWN_MS);
+  ghostInterval=setInterval(spawnGhost, BASE_GHOST_SPAWN_MS);
   gameInterval=setInterval(updateTimer,1000);
   document.addEventListener('keydown',onKeyDown);
   if(window.innerWidth<=768) mobileControls.style.display='flex';
   else mobileControls.style.display='none';
 }
 
-// Bloquear clique direito
-document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('contextmenu',e=>e.preventDefault());
 
 function onKeyDown(e){
   if(!gameActive) return;
@@ -124,34 +123,34 @@ function spawnPumpkin(){
   const p=document.createElement('div');p.className='pumpkin';p.textContent='🎃';
   const left=Math.random()*(window.innerWidth-40);p.style.left=left+'px';p.style.top='-60px';
   game.appendChild(p);
-  let pos=-60;const speed=BASE_PUMPKIN_FALL+Math.random()*2+(level-1)*0.6;
+  let pos=-60;const speed=BASE_PUMPKIN_FALL+Math.random()*1.2;
   const id=setInterval(()=>{
     if(!gameActive){clearInterval(id);if(p.parentNode)p.remove();return;}
     pos+=speed;p.style.top=pos+'px';
-    const pRect=p.getBoundingClientRect(), playerRect=player.getBoundingClientRect();
+    const pRect=p.getBoundingClientRect(),playerRect=player.getBoundingClientRect();
     if(pRect.bottom>=playerRect.top && pRect.left+8<playerRect.right && pRect.right-8>playerRect.left){
       score++;pumpkinsThisLevel++;scoreEl.textContent=score;
       if(level<MAX_LEVEL && pumpkinsThisLevel>=POINTS_PER_LEVEL) levelUp();
       p.remove();clearInterval(id);return;
     }
     if(pos>window.innerHeight){p.remove();clearInterval(id);}
-  },28);
+  },30);
 }
 
 function spawnGhost(){
   if(!gameActive) return;
   const g=document.createElement('div');g.className='ghost';g.textContent='👻';
   const left=Math.random()*(window.innerWidth-40);g.style.left=left+'px';g.style.top='-60px';
-  game.appendChild(g);let pos=-60;const speed=3+Math.random()*1.5+(level-1)*0.35;
+  game.appendChild(g);let pos=-60;const speed=2.5+Math.random()*1;
   const id=setInterval(()=>{
-    if(!gameActive){clearInterval(id);if(g.parentNode) g.remove();return;}
+    if(!gameActive){clearInterval(id);if(g.parentNode)g.remove();return;}
     pos+=speed;g.style.top=pos+'px';
-    const gRect=g.getBoundingClientRect(), playerRect=player.getBoundingClientRect();
+    const gRect=g.getBoundingClientRect(),playerRect=player.getBoundingClientRect();
     if(gRect.bottom>=playerRect.top && gRect.top<=playerRect.bottom && gRect.left<playerRect.right && gRect.right>playerRect.left){
       g.remove();clearInterval(id);endGame(true);return;
     }
     if(pos>window.innerHeight){g.remove();clearInterval(id);}
-  },28);
+  },30);
 }
 
 function levelUp(){
@@ -161,26 +160,32 @@ function levelUp(){
 }
 
 nextLevelBtn.addEventListener('click',()=>{
-  level++;levelEl.textContent=level;levelUpScreen.style.display='none';gameActive=true;
+  level++;levelEl.textContent=level;levelUpScreen.style.display='none';
+  gameActive=true;timeLeft=30;timeEl.textContent=timeLeft;
   clearIntervals();
   pumpkinInterval=setInterval(spawnPumpkin, BASE_PUMPKIN_SPAWN_MS);
-  ghostInterval=setInterval(spawnGhost,BASE_GHOST_SPAWN_MS);
+  ghostInterval=setInterval(spawnGhost, BASE_GHOST_SPAWN_MS);
+  gameInterval=setInterval(updateTimer,1000);
 });
 
-function updateTimer(){if(!gameActive) return;timeLeft--;timeEl.textContent=timeLeft;if(timeLeft<=0) endGame(false);}
+function updateTimer(){
+  if(!gameActive) return;
+  timeLeft--;timeEl.textContent=timeLeft;
+  if(timeLeft<=0) endGame(false);
+}
+
 function clearIntervals(){clearInterval(gameInterval);clearInterval(pumpkinInterval);clearInterval(ghostInterval);}
 
 function showEndScreen(){
-  gameActive = false;clearIntervals();
+  gameActive=false;clearIntervals();
   document.querySelectorAll('.pumpkin').forEach(n=>n.remove());
   document.querySelectorAll('.ghost').forEach(n=>n.remove());
-  finalScoreEl.textContent = score;
-  if(level === MAX_LEVEL && pumpkinsThisLevel >= POINTS_PER_LEVEL){
-    currentCode = REWARD_CODES[Math.floor(Math.random()*REWARD_CODES.length)];
-    rewardCodeEl.textContent = '🎉 Código: '+currentCode;
-    copyBtn.style.display='inline-block';
+  finalScoreEl.textContent=score;
+  if(level===MAX_LEVEL && pumpkinsThisLevel>=POINTS_PER_LEVEL){
+    currentCode=REWARD_CODES[Math.floor(Math.random()*REWARD_CODES.length)];
+    rewardCodeEl.textContent='🎉 Código: '+currentCode;copyBtn.style.display='inline-block';
     document.getElementById('endTitle').textContent='Parabéns!';
-  } else {
+  }else{
     rewardCodeEl.textContent='';copyBtn.style.display='none';document.getElementById('endTitle').textContent='Fim de Jogo';
   }
   endScreen.style.display='block';
