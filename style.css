@@ -1,0 +1,78 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Comic Sans MS", cursive;
+}
+
+body {
+  background: linear-gradient(to bottom, #0c0c0c, #2b0000);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.game-container {
+  text-align: center;
+}
+
+#game {
+  position: relative;
+  background: #1b0000;
+  border: 3px solid orange;
+  width: 400px;
+  height: 400px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+#player {
+  position: absolute;
+  bottom: 10px;
+  left: 180px;
+  font-size: 30px;
+  transition: left 0.1s linear;
+}
+
+.pumpkin {
+  position: absolute;
+  font-size: 25px;
+  animation: fall linear forwards;
+}
+
+@keyframes fall {
+  0% { top: -30px; }
+  100% { top: 400px; }
+}
+
+.hud {
+  margin: 10px 0;
+}
+
+button {
+  background: orange;
+  color: black;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 8px;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background: darkorange;
+}
+
+.hidden {
+  display: none;
+}
+
+#endScreen {
+  background: rgba(0, 0, 0, 0.7);
+  padding: 20px;
+  border-radius: 10px;
+  margin-top: 10px;
+}
