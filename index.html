@@ -147,7 +147,7 @@ function spawnGhost(){
     pos+=speed;g.style.top=pos+'px';
     const gRect=g.getBoundingClientRect(),playerRect=player.getBoundingClientRect();
     if(gRect.bottom>=playerRect.top && gRect.top<=playerRect.bottom && gRect.left<playerRect.right && gRect.right>playerRect.left){
-      g.remove();clearInterval(id);endGame(true);return;
+      endGame(true);g.remove();clearInterval(id);return;
     }
     if(pos>window.innerHeight){g.remove();clearInterval(id);}
   },30);
@@ -161,7 +161,8 @@ function levelUp(){
 
 nextLevelBtn.addEventListener('click',()=>{
   level++;levelEl.textContent=level;levelUpScreen.style.display='none';
-  gameActive=true;timeLeft=30;timeEl.textContent=timeLeft;
+  score=0;scoreEl.textContent=score;timeLeft=30;timeEl.textContent=timeLeft;
+  gameActive=true;
   clearIntervals();
   pumpkinInterval=setInterval(spawnPumpkin, BASE_PUMPKIN_SPAWN_MS);
   ghostInterval=setInterval(spawnGhost, BASE_GHOST_SPAWN_MS);
@@ -195,9 +196,15 @@ function endGame(byGhost=false){
   gameActive=false;clearIntervals();
   document.querySelectorAll('.pumpkin').forEach(n=>n.remove());
   document.querySelectorAll('.ghost').forEach(n=>n.remove());
-  finalScoreEl.textContent=score;
-  if(byGhost){rewardCodeEl.textContent='Você tomou um susto! 😱';document.getElementById('endTitle').textContent='Você tomou um susto!';copyBtn.style.display='none';}
-  else showEndScreen();
+  if(byGhost){
+    rewardCodeEl.textContent='Você tomou um susto! 😱';
+    document.getElementById('endTitle').textContent='Você tomou um susto!';
+    copyBtn.style.display='none';
+  }else if(level===MAX_LEVEL && pumpkinsThisLevel>=POINTS_PER_LEVEL){
+    showEndScreen();
+  }else{
+    showEndScreen();
+  }
 }
 
 startBtn.addEventListener('click',startGame);
