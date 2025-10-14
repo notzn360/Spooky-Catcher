@@ -8,13 +8,16 @@ const finalScore = document.getElementById("finalScore");
 const rewardCode = document.getElementById("rewardCode");
 const restartBtn = document.getElementById("restartBtn");
 
+const leftBtn = document.getElementById("leftBtn");
+const rightBtn = document.getElementById("rightBtn");
+
 let score = 0;
 let timeLeft = 30;
 let gameInterval;
 let pumpkinInterval;
 let playerX;
 let gameActive = false;
-let step = 20; // velocidade do jogador
+let step = 20;
 
 function startGame() {
   score = 0;
@@ -28,21 +31,37 @@ function startGame() {
   playerX = window.innerWidth / 2;
   player.style.left = playerX + "px";
 
-  gameInterval = setInterval(updateTimer, 1000);
   pumpkinInterval = setInterval(spawnPumpkin, 700);
+  gameInterval = setInterval(updateTimer, 1000);
 
   document.addEventListener("keydown", movePlayer);
+  
+  if (window.innerWidth <= 768) {
+    document.getElementById("mobileControls").style.display = "flex";
+  }
 }
 
 function movePlayer(e) {
   if (!gameActive) return;
-  if (e.key === "ArrowLeft") {
+  if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") {
     playerX -= step;
     if (playerX < 0) playerX = 0;
-  } else if (e.key === "ArrowRight") {
+  } else if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") {
     playerX += step;
     if (playerX > window.innerWidth - 50) playerX = window.innerWidth - 50;
   }
+  player.style.left = playerX + "px";
+}
+
+// Mobile buttons
+leftBtn.addEventListener("touchstart", () => moveMobile(-step));
+rightBtn.addEventListener("touchstart", () => moveMobile(step));
+
+function moveMobile(distance) {
+  if (!gameActive) return;
+  playerX += distance;
+  if (playerX < 0) playerX = 0;
+  if (playerX > window.innerWidth - 50) playerX = window.innerWidth - 50;
   player.style.left = playerX + "px";
 }
 
