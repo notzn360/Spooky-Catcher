@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pumpkin Catcher 🎃</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="game-container">
+    <h1 class="title">🎃 Pumpkin Catcher 🎃</h1>
+    <div id="game">
+      <div id="player">👻</div>
+    </div>
+    <div class="hud">
+      <p>Pontos: <span id="score">0</span></p>
+      <p>Tempo: <span id="time">30</span>s</p>
+    </div>
+    <button id="startBtn">Começar</button>
+    <div id="endScreen" class="hidden">
+      <h2>🎃 Fim de jogo!</h2>
+      <p>Sua pontuação: <span id="finalScore"></span></p>
+      <p>Código de recompensa: <span id="rewardCode"></span></p>
+      <button onclick="restartGame()">Jogar novamente</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
