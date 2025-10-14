@@ -80,12 +80,16 @@ const nextLevelBtn=document.getElementById('nextLevelBtn');
 
 let score=0,timeLeft=60,level=1,pumpkinsThisLevel=0;
 let gameActive=false,playerX=window.innerWidth/2;
-const playerWidth=50,step=35; // jogador rápido
+const playerWidth=50,step=35;
 let pumpkinInterval,ghostInterval,gameInterval;
 const MAX_LEVEL=5,POINTS_PER_LEVEL=15;
-// spawn bem rápido e mais abóboras
-const BASE_PUMPKIN_SPAWN_MS=250, BASE_PUMPKIN_FALL=7, BASE_GHOST_SPAWN_MS=5000;
-const REWARD_CODES=["NTX-1A7G","NTX-B4K9","NTX-5Q2M","NTX-R8ZW","NTX-6T0P","NTX-X3N4","NTX-9V6S","NTX-C2H7","NTX-J8L1","NTX-Z5Y0"];
+
+const REWARD_CODES=[
+"NTX-1A7G","NTX-B4K9","NTX-5Q2M","NTX-R8ZW","NTX-6T0P","NTX-X3N4","NTX-9V6S","NTX-C2H7","NTX-J8L1","NTX-Z5Y0",
+"NTX-4F8K","NTX-Q2W1","NTX-M7Z5","NTX-H9J3","NTX-L6D0","NTX-P5R8","NTX-V3B2","NTX-N1C9","NTX-T8Y4","NTX-S6U7",
+"NTX-K2E5","NTX-G9M1","NTX-J4H6","NTX-R0X3","NTX-B7A8","NTX-C5L9","NTX-D3F2","NTX-W6Q0","NTX-Z8V1","NTX-Y4P7"
+];
+
 let currentCode="";
 
 function startGame(){
@@ -95,8 +99,8 @@ function startGame(){
   rewardCodeEl.textContent='';endScreen.style.display='none';levelUpScreen.style.display='none';
   startBtn.style.display='none';
   clearIntervals();
-  pumpkinInterval=setInterval(spawnPumpkin, BASE_PUMPKIN_SPAWN_MS);
-  ghostInterval=setInterval(spawnGhost, BASE_GHOST_SPAWN_MS);
+  pumpkinInterval=setInterval(spawnPumpkin,250);
+  ghostInterval=setInterval(spawnGhost,5000);
   gameInterval=setInterval(updateTimer,1000);
   document.addEventListener('keydown',onKeyDown);
   if(window.innerWidth<=768) mobileControls.style.display='flex';
@@ -112,10 +116,12 @@ function onKeyDown(e){
   if(key==='d'||key==='arrowright') playerX+=step;
   clampPlayer();
 }
+
 leftBtn.addEventListener('touchstart',()=>moveMobile(-step));
 rightBtn.addEventListener('touchstart',()=>moveMobile(step));
 leftBtn.addEventListener('mousedown',()=>moveMobile(-step));
 rightBtn.addEventListener('mousedown',()=>moveMobile(step));
+
 function moveMobile(delta){if(!gameActive) return;playerX+=delta;clampPlayer();}
 function clampPlayer(){if(playerX<0)playerX=0;if(playerX>window.innerWidth-playerWidth)playerX=window.innerWidth-playerWidth;player.style.left=playerX+'px';}
 
@@ -124,7 +130,7 @@ function spawnPumpkin(){
   const p=document.createElement('div');p.className='pumpkin';p.textContent='🎃';
   const left=Math.random()*(window.innerWidth-40);p.style.left=left+'px';p.style.top='-60px';
   game.appendChild(p);
-  let pos=-60;const speed=BASE_PUMPKIN_FALL+Math.random()*2;
+  let pos=-60;const speed=7+Math.random()*2;
   const id=setInterval(()=>{
     if(!gameActive){clearInterval(id);if(p.parentNode)p.remove();return;}
     pos+=speed;p.style.top=pos+'px';
@@ -142,7 +148,7 @@ function spawnGhost(){
   if(!gameActive) return;
   const g=document.createElement('div');g.className='ghost';g.textContent='👻';
   const left=Math.random()*(window.innerWidth-40);g.style.left=left+'px';g.style.top='-60px';
-  game.appendChild(g);let pos=-60;const speed=1.5; // ghost lento
+  game.appendChild(g);let pos=-60;const speed=1.5;
   const id=setInterval(()=>{
     if(!gameActive){clearInterval(id);if(g.parentNode)g.remove();return;}
     pos+=speed;g.style.top=pos+'px';
@@ -165,8 +171,8 @@ nextLevelBtn.addEventListener('click',()=>{
   score=0;scoreEl.textContent=score;timeLeft=60;timeEl.textContent=timeLeft;
   gameActive=true;
   clearIntervals();
-  pumpkinInterval=setInterval(spawnPumpkin, BASE_PUMPKIN_SPAWN_MS);
-  ghostInterval=setInterval(spawnGhost, BASE_GHOST_SPAWN_MS);
+  pumpkinInterval=setInterval(spawnPumpkin,250);
+  ghostInterval=setInterval(spawnGhost,5000);
   gameInterval=setInterval(updateTimer,1000);
 });
 
