@@ -6,13 +6,15 @@ const startBtn = document.getElementById("startBtn");
 const endScreen = document.getElementById("endScreen");
 const finalScore = document.getElementById("finalScore");
 const rewardCode = document.getElementById("rewardCode");
+const restartBtn = document.getElementById("restartBtn");
 
 let score = 0;
 let timeLeft = 30;
 let gameInterval;
 let pumpkinInterval;
-let playerX = 50; // posição inicial (em %)
+let playerX;
 let gameActive = false;
+let step = 20; // velocidade do jogador
 
 function startGame() {
   score = 0;
@@ -21,36 +23,39 @@ function startGame() {
   scoreDisplay.textContent = score;
   timeDisplay.textContent = timeLeft;
   startBtn.classList.add("hidden");
-  endScreen.classList.add("hidden");
+  endScreen.style.display = "none";
 
-  playerX = 50;
-  player.style.left = playerX + "%";
+  playerX = window.innerWidth / 2;
+  player.style.left = playerX + "px";
 
   gameInterval = setInterval(updateTimer, 1000);
-  pumpkinInterval = setInterval(spawnPumpkin, 800);
+  pumpkinInterval = setInterval(spawnPumpkin, 700);
 
   document.addEventListener("keydown", movePlayer);
 }
 
 function movePlayer(e) {
   if (!gameActive) return;
-  if (e.key === "ArrowLeft" && playerX > 5) {
-    playerX -= 5;
-  } else if (e.key === "ArrowRight" && playerX < 95) {
-    playerX += 5;
+  if (e.key === "ArrowLeft") {
+    playerX -= step;
+    if (playerX < 0) playerX = 0;
+  } else if (e.key === "ArrowRight") {
+    playerX += step;
+    if (playerX > window.innerWidth - 50) playerX = window.innerWidth - 50;
   }
-  player.style.left = playerX + "%";
+  player.style.left = playerX + "px";
 }
 
 function spawnPumpkin() {
   const pumpkin = document.createElement("div");
   pumpkin.classList.add("pumpkin");
   pumpkin.textContent = "🎃";
-  pumpkin.style.left = Math.random() * 90 + "%";
+  pumpkin.style.left = Math.random() * (window.innerWidth - 40) + "px";
+  pumpkin.style.top = "-50px";
 
   game.appendChild(pumpkin);
 
-  let pos = -30;
+  let pos = -50;
   const fallSpeed = 4 + Math.random() * 3;
 
   const fall = setInterval(() => {
@@ -63,15 +68,13 @@ function spawnPumpkin() {
     pos += fallSpeed;
     pumpkin.style.top = pos + "px";
 
-    const gameHeight = game.clientHeight;
     const pumpkinRect = pumpkin.getBoundingClientRect();
     const playerRect = player.getBoundingClientRect();
 
-    // colisão
     if (
       pumpkinRect.bottom >= playerRect.top &&
-      pumpkinRect.left < playerRect.right &&
-      pumpkinRect.right > playerRect.left
+      pumpkinRect.left + 10 < playerRect.right &&
+      pumpkinRect.right - 10 > playerRect.left
     ) {
       score++;
       scoreDisplay.textContent = score;
@@ -79,8 +82,7 @@ function spawnPumpkin() {
       clearInterval(fall);
     }
 
-    // saiu da tela
-    if (pos > gameHeight) {
+    if (pos > window.innerHeight) {
       pumpkin.remove();
       clearInterval(fall);
     }
@@ -101,12 +103,8 @@ function endGame() {
   document.querySelectorAll(".pumpkin").forEach(p => p.remove());
   finalScore.textContent = score;
   rewardCode.textContent = generateRewardCode(score);
-  endScreen.classList.remove("hidden");
+  endScreen.style.display = "block";
   startBtn.classList.remove("hidden");
-}
-
-function restartGame() {
-  startGame();
 }
 
 function generateRewardCode(points) {
@@ -116,4 +114,5 @@ function generateRewardCode(points) {
   return "Tente fazer +15 pontos!";
 }
 
+restartBtn.addEventListener("click", startGame);
 startBtn.addEventListener("click", startGame);
