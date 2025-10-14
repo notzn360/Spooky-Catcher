@@ -16,6 +16,7 @@ let score = 0;
 let timeLeft = 30;
 let gameInterval;
 let pumpkinInterval;
+let ghostInterval;
 let playerX;
 let gameActive = false;
 let step = 20;
@@ -33,11 +34,11 @@ function startGame() {
   player.style.left = playerX + "px";
 
   pumpkinInterval = setInterval(spawnPumpkin, 700);
+  ghostInterval = setInterval(spawnGhost, 3000);
   gameInterval = setInterval(updateTimer, 1000);
 
   document.addEventListener("keydown", movePlayer);
 
-  // Mobile só aparece se a largura da tela <= 768
   if (window.innerWidth <= 768) {
     mobileControls.style.display = "flex";
   } else {
@@ -47,14 +48,11 @@ function startGame() {
 
 function movePlayer(e) {
   if (!gameActive) return;
-  const key = e.key.toLowerCase();
-  if (key === "a" || key === "arrowleft") {
-    playerX -= step;
-  } else if (key === "d" || key === "arrowright") {
-    playerX += step;
-  }
 
-  // limites da tela
+  const key = e.key.toLowerCase();
+  if (key === "a" || key === "arrowleft") playerX -= step;
+  if (key === "d" || key === "arrowright") playerX += step;
+
   if (playerX < 0) playerX = 0;
   if (playerX > window.innerWidth - 50) playerX = window.innerWidth - 50;
 
@@ -70,10 +68,8 @@ rightBtn.addEventListener("mousedown", () => moveMobile(step));
 function moveMobile(distance) {
   if (!gameActive) return;
   playerX += distance;
-
   if (playerX < 0) playerX = 0;
   if (playerX > window.innerWidth - 50) playerX = window.innerWidth - 50;
-
   player.style.left = playerX + "px";
 }
 
@@ -120,22 +116,67 @@ function spawnPumpkin() {
   }, 30);
 }
 
+function spawnGhost() {
+  const ghost = document.createElement("div");
+  ghost.classList.add("ghost");
+  ghost.textContent = "👻";
+  ghost.style.left = Math.random() * (window.innerWidth - 40) + "px";
+  ghost.style.top = "-50px";
+  game.appendChild(ghost);
+
+  let pos = -50;
+  const fallSpeed = 3 + Math.random() * 2;
+
+  const fall = setInterval(() => {
+    if (!gameActive) {
+      ghost.remove();
+      clearInterval(fall);
+      return;
+    }
+
+    pos += fallSpeed;
+    ghost.style.top = pos + "px";
+
+    const ghostRect = ghost.getBoundingClientRect();
+    const playerRect = player.getBoundingClientRect();
+
+    // colisão com fantasma
+    if (
+      ghostRect.bottom >= playerRect.top &&
+      ghostRect.top <= playerRect.bottom &&
+      ghostRect.left < playerRect.right &&
+      ghostRect.right > playerRect.left
+    ) {
+      endGame(true);
+    }
+
+    if (pos > window.innerHeight) {
+      ghost.remove();
+      clearInterval(fall);
+    }
+  }, 30);
+}
+
 function updateTimer() {
   timeLeft--;
   timeDisplay.textContent = timeLeft;
-  if (timeLeft <= 0) endGame();
+  if (timeLeft <= 0) endGame(false);
 }
 
-function endGame() {
+function endGame(byGhost = false) {
   gameActive = false;
   clearInterval(gameInterval);
   clearInterval(pumpkinInterval);
+  clearInterval(ghostInterval);
   document.removeEventListener("keydown", movePlayer);
   document.querySelectorAll(".pumpkin").forEach(p => p.remove());
+  document.querySelectorAll(".ghost").forEach(g => g.remove());
+
   finalScore.textContent = score;
-  rewardCode.textContent = generateRewardCode(score);
+  rewardCode.textContent = byGhost ? "Você tomou um susto! 😱" : generateRewardCode(score);
+
   endScreen.style.display = "block";
-  startBtn.classList.remove("hidden");
+  startBtn.classList.add("hidden");
 }
 
 function generateRewardCode(points) {
