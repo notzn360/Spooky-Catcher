@@ -1,31 +1,32 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Spooky Catcher 🎃</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spooky Quest</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div id="game">
-    <div id="player">🧙‍♂️</div>
-    <div id="hud">
-      <span>Pontos: <span id="score">0</span></span>
-      <span>Tempo: <span id="time">30</span>s</span>
-    </div>
+    <div id="player">🕷️</div>
+  </div>
 
-    <div id="mobileControls">
-      <button id="leftBtn">◀</button>
-      <button id="rightBtn">▶</button>
-    </div>
-
-    <div id="endScreen" class="hidden">
-      <h1>🎃 Fim de jogo!</h1>
-      <p>Sua pontuação: <span id="finalScore"></span></p>
-      <p>Código de recompensa: <span id="rewardCode"></span></p>
-      <button id="restartBtn">Jogar novamente</button>
-    </div>
+  <div id="ui">
+    <div>Score: <span id="score">0</span></div>
+    <div>Time: <span id="time">30</span></div>
     <button id="startBtn">Começar</button>
+  </div>
+
+  <div id="endScreen">
+    <h2>Fim de Jogo!</h2>
+    <p>Pontos: <span id="finalScore">0</span></p>
+    <p id="rewardCode"></p>
+    <button id="restartBtn">Jogar novamente</button>
+  </div>
+
+  <div id="mobileControls">
+    <button id="leftBtn">◀️</button>
+    <button id="rightBtn">▶️</button>
   </div>
 
   <script src="script.js"></script>
