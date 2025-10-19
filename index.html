@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🎃 Spooky Catcher</title>
   <style>
     body {
@@ -16,7 +16,7 @@
     canvas {
       display: block;
       margin: 0 auto;
-      background: linear-gradient(#000, #111);
+      background: radial-gradient(circle, #111, #000);
     }
     #ui {
       position: absolute;
@@ -80,10 +80,12 @@
 </head>
 <body>
   <div id="ui">🎃 Pontos: <span id="score">0</span> | ⏳ Tempo: <span id="timer">30</span> | 🧩 Nível: <span id="level">1</span></div>
+
   <div id="startScreen">
     <h1>🎃 Spooky Catcher 🧙‍♂️</h1>
     <button id="startBtn">Começar</button>
   </div>
+
   <div id="gameOverScreen" style="display:none;">
     <h2 id="endMessage"></h2>
     <div id="codeBox" style="display:none;">
@@ -92,11 +94,17 @@
     </div>
     <button id="restartBtn">Jogar Novamente</button>
   </div>
+
   <canvas id="gameCanvas"></canvas>
+
   <div id="mobileControls">
     <button class="btn" id="leftBtn">⬅️</button>
     <button class="btn" id="rightBtn">➡️</button>
   </div>
+
+  <audio id="bgMusic" loop>
+    <source src="https://cdn.pixabay.com/download/audio/2023/10/01/audio_1d7a7c89d8.mp3?filename=halloween-theme-183105.mp3" type="audio/mp3">
+  </audio>
 
   <script>
     const canvas = document.getElementById("gameCanvas");
@@ -104,16 +112,25 @@
     canvas.width = innerWidth;
     canvas.height = innerHeight;
 
+    // sons 🎧
+    const sounds = {
+      collect: new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_3b45a918c3.mp3?filename=collectcoin-6075.mp3"),
+      start: new Audio("https://cdn.pixabay.com/download/audio/2022/10/18/audio_4cc456a8ff.mp3?filename=game-start-6103.mp3"),
+      scare: new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_2a61759cc8.mp3?filename=monster-6082.mp3"),
+    };
+    const bgMusic = document.getElementById("bgMusic");
+
     let player = { x: canvas.width/2, y: canvas.height-100, size: 50, speed: 8 };
     let pumpkins = [], ghosts = [];
-    let score = 0, level = 1, timer = 30, playing = false, interval, gameOver = false;
+    let score = 0, level = 1, timer = 30, playing = false;
+    let gameLoop, timeLoop, pumpkinLoop, ghostLoop;
     const codes = ["NTX-472A", "NTX-19FD", "NTX-83ZZ", "NTX-552K", "NTX-WIN5"];
-    
+
     function spawnPumpkin() {
-      pumpkins.push({ x: Math.random() * (canvas.width-40), y: -40, size: 40, speed: 4 + Math.random() * 3 });
+      pumpkins.push({ x: Math.random() * (canvas.width-40), y: -40, size: 40, speed: 4 + Math.random() * 2 });
     }
     function spawnGhost() {
-      ghosts.push({ x: Math.random() * (canvas.width-40), y: -40, size: 45, speed: 5 + Math.random() * 2 });
+      ghosts.push({ x: Math.random() * (canvas.width-40), y: -40, size: 45, speed: 4 + Math.random() * 2 });
     }
 
     function drawPlayer() {
@@ -142,51 +159,58 @@
       drawPumpkins();
       drawGhosts();
 
-      // mover abóboras
       for (let p of pumpkins) p.y += p.speed;
       pumpkins = pumpkins.filter(p => p.y < canvas.height);
-
-      // mover fantasmas
       for (let g of ghosts) g.y += g.speed;
       ghosts = ghosts.filter(g => g.y < canvas.height);
 
-      // colisão com abóbora
       for (let p of pumpkins) {
         if (Math.abs(player.x - p.x) < 40 && Math.abs(player.y - p.y) < 40) {
           pumpkins.splice(pumpkins.indexOf(p), 1);
           score++;
+          sounds.collect.play();
           document.getElementById("score").textContent = score;
           if (score >= 15) nextLevel();
         }
       }
 
-      // colisão com fantasma
       for (let g of ghosts) {
         if (Math.abs(player.x - g.x) < 40 && Math.abs(player.y - g.y) < 40) {
+          sounds.scare.play();
           endGame("👻 Você tomou um susto!");
         }
       }
 
-      requestAnimationFrame(update);
+      gameLoop = requestAnimationFrame(update);
     }
 
     function nextLevel() {
       level++;
+      if (level > 5) {
+        endGame("🏆 Parabéns! Você venceu!");
+        return;
+      }
       score = 0;
       timer = 30;
       document.getElementById("level").textContent = level;
       document.getElementById("score").textContent = score;
-      if (level === 5) endGame("🏆 Parabéns! Você venceu!");
     }
 
     function endGame(msg) {
       playing = false;
-      clearInterval(interval);
+      clearInterval(timeLoop);
+      clearInterval(pumpkinLoop);
+      clearInterval(ghostLoop);
+      cancelAnimationFrame(gameLoop);
+      bgMusic.pause();
       document.getElementById("endMessage").textContent = msg;
       document.getElementById("gameOverScreen").style.display = "flex";
+
       if (level === 5) {
         document.getElementById("codeBox").style.display = "block";
         document.getElementById("codeValue").textContent = codes[4];
+      } else {
+        document.getElementById("codeBox").style.display = "none";
       }
     }
 
@@ -195,17 +219,21 @@
       pumpkins = []; ghosts = [];
       player.x = canvas.width/2;
       playing = true;
+      sounds.start.play();
+      bgMusic.volume = 0.2;
+      bgMusic.play();
       document.getElementById("score").textContent = score;
       document.getElementById("level").textContent = level;
       document.getElementById("gameOverScreen").style.display = "none";
       document.getElementById("startScreen").style.display = "none";
-      interval = setInterval(() => {
+
+      timeLoop = setInterval(() => {
         timer--;
         document.getElementById("timer").textContent = timer;
         if (timer <= 0) endGame("⏳ O tempo acabou!");
       }, 1000);
-      setInterval(spawnPumpkin, 700);
-      setInterval(spawnGhost, 1500);
+      pumpkinLoop = setInterval(spawnPumpkin, 400);
+      ghostLoop = setInterval(spawnGhost, 1200);
       update();
     }
 
@@ -216,18 +244,14 @@
       navigator.clipboard.writeText(document.getElementById("codeValue").textContent);
       alert("Código copiado!");
     };
-
     document.getElementById("leftBtn").ontouchstart = () => player.x -= player.speed * 2;
     document.getElementById("rightBtn").ontouchstart = () => player.x += player.speed * 2;
-
     document.addEventListener("keydown", e => {
       if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") player.x -= player.speed;
       if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") player.x += player.speed;
       if (player.x < 0) player.x = 0;
       if (player.x > canvas.width - 50) player.x = canvas.width - 50;
     });
-
-    // desativa clique do mouse
     document.addEventListener("mousedown", e => e.preventDefault());
   </script>
 </body>
