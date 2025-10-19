@@ -1,258 +1,345 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🎃 Spooky Catcher</title>
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      background-color: #000;
-      color: white;
-      font-family: "Comic Sans MS", cursive;
-      text-align: center;
-    }
-    canvas {
-      display: block;
-      margin: 0 auto;
-      background: radial-gradient(circle, #111, #000);
-    }
-    #ui {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 20px;
-      z-index: 10;
-    }
-    #startScreen, #gameOverScreen {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.85);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 20;
-    }
-    button {
-      background: orange;
-      border: none;
-      padding: 15px 30px;
-      font-size: 20px;
-      border-radius: 12px;
-      cursor: pointer;
-      margin-top: 15px;
-      transition: 0.3s;
-    }
-    button:hover { background: #ffb347; }
-    #mobileControls {
-      position: absolute;
-      bottom: 20px;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      gap: 30px;
-      z-index: 10;
-    }
-    .btn {
-      background: rgba(255,165,0,0.6);
-      border: 2px solid #fff;
-      color: white;
-      font-size: 25px;
-      padding: 15px;
-      border-radius: 50%;
-      width: 60px;
-      height: 60px;
-    }
-    #codeBox {
-      background: #222;
-      padding: 10px;
-      border-radius: 10px;
-      font-size: 18px;
-      margin-top: 10px;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Jogo do Mago 🎃</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: linear-gradient(to bottom, #000, #1a0000);
+    color: white;
+    font-family: sans-serif;
+    text-align: center;
+  }
+  #game {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+  }
+  #player {
+    position: absolute;
+    bottom: 20px;
+    font-size: 50px;
+  }
+  .pumpkin, .ghost {
+    position: absolute;
+    font-size: 40px;
+  }
+  #ui {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 20px;
+  }
+  #startBtn, #restartBtn, #nextLevelBtn, #copyBtn {
+    background: orange;
+    border: none;
+    padding: 10px 20px;
+    margin: 5px;
+    font-size: 18px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  #endScreen {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  #mobileControls {
+    position: absolute;
+    bottom: 10px;
+    width: 100%;
+    display: none;
+    justify-content: space-around;
+  }
+  .controlBtn {
+    background: orange;
+    border: none;
+    padding: 15px 30px;
+    font-size: 25px;
+    border-radius: 10px;
+    user-select: none;
+  }
+</style>
 </head>
 <body>
-  <div id="ui">🎃 Pontos: <span id="score">0</span> | ⏳ Tempo: <span id="timer">30</span> | 🧩 Nível: <span id="level">1</span></div>
-
-  <div id="startScreen">
-    <h1>🎃 Spooky Catcher 🧙‍♂️</h1>
-    <button id="startBtn">Começar</button>
-  </div>
-
-  <div id="gameOverScreen" style="display:none;">
-    <h2 id="endMessage"></h2>
-    <div id="codeBox" style="display:none;">
-      <p>💀 Seu código é: <b id="codeValue"></b></p>
-      <button id="copyCodeBtn">Copiar Código</button>
+  <div id="game">
+    <div id="ui">
+      🎯 Pontos: <span id="score">0</span> |
+      ⏰ Tempo: <span id="time">30</span> |
+      🧩 Level: <span id="level">1</span>
     </div>
-    <button id="restartBtn">Jogar Novamente</button>
+    <div id="player">🧙‍♂️</div>
+    <button id="startBtn">Começar</button>
+
+    <div id="endScreen">
+      <h1 id="endMessage"></h1>
+      <h2 id="finalScore"></h2>
+      <p id="rewardText"></p>
+      <p id="rewardCode"></p>
+      <button id="copyBtn" style="display:none;">Copiar Código</button>
+      <button id="restartBtn">Jogar Novamente</button>
+      <button id="nextLevelBtn" style="display:none;">Ir para o Próximo Nível</button>
+    </div>
+
+    <div id="mobileControls">
+      <button class="controlBtn" id="leftBtn">⬅️</button>
+      <button class="controlBtn" id="rightBtn">➡️</button>
+    </div>
   </div>
 
-  <canvas id="gameCanvas"></canvas>
+<script>
+const game = document.getElementById("game");
+const player = document.getElementById("player");
+const scoreDisplay = document.getElementById("score");
+const timeDisplay = document.getElementById("time");
+const startBtn = document.getElementById("startBtn");
+const endScreen = document.getElementById("endScreen");
+const finalScore = document.getElementById("finalScore");
+const rewardCode = document.getElementById("rewardCode");
+const rewardText = document.getElementById("rewardText");
+const restartBtn = document.getElementById("restartBtn");
+const nextLevelBtn = document.getElementById("nextLevelBtn");
+const copyBtn = document.getElementById("copyBtn");
+const levelDisplay = document.getElementById("level");
+const leftBtn = document.getElementById("leftBtn");
+const rightBtn = document.getElementById("rightBtn");
 
-  <div id="mobileControls">
-    <button class="btn" id="leftBtn">⬅️</button>
-    <button class="btn" id="rightBtn">➡️</button>
-  </div>
+let score = 0;
+let timeLeft = 30;
+let gameInterval;
+let pumpkinInterval;
+let ghostInterval;
+let playerX;
+let gameActive = false;
+let level = 1;
+let step = 35;
+let pumpkinSpeed = 3;
+let ghostSpeed = 2;
+let spawnRate = 1200;
 
-  <audio id="bgMusic" loop>
-    <source src="https://cdn.pixabay.com/download/audio/2023/10/01/audio_1d7a7c89d8.mp3?filename=halloween-theme-183105.mp3" type="audio/mp3">
-  </audio>
+const rewardCodes = [
+  "HALLOWEEN-2025", "MAGIC-7777", "SPOOKY-5555",
+  "MAGO-9999", "WITCHKING-4444"
+];
 
-  <script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
-    canvas.width = innerWidth;
-    canvas.height = innerHeight;
+document.addEventListener("contextmenu", e => e.preventDefault());
 
-    // sons 🎧
-    const sounds = {
-      collect: new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_3b45a918c3.mp3?filename=collectcoin-6075.mp3"),
-      start: new Audio("https://cdn.pixabay.com/download/audio/2022/10/18/audio_4cc456a8ff.mp3?filename=game-start-6103.mp3"),
-      scare: new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_2a61759cc8.mp3?filename=monster-6082.mp3"),
+function startGame() {
+  score = 0;
+  timeLeft = 30;
+  gameActive = true;
+  scoreDisplay.textContent = score;
+  timeDisplay.textContent = timeLeft;
+  startBtn.style.display = "none";
+  endScreen.style.display = "none";
+  levelDisplay.textContent = level;
+
+  playerX = window.innerWidth / 2;
+  player.style.left = playerX + "px";
+
+  pumpkinInterval = setInterval(spawnPumpkin, spawnRate);
+  ghostInterval = setInterval(spawnGhost, spawnRate * 3);
+  gameInterval = setInterval(updateTimer, 1000);
+
+  document.addEventListener("keydown", movePlayer);
+
+  if (window.innerWidth <= 768) {
+    document.getElementById("mobileControls").style.display = "flex";
+  }
+}
+
+function movePlayer(e) {
+  if (!gameActive) return;
+  if (["a", "A", "ArrowLeft"].includes(e.key)) {
+    playerX -= step;
+  } else if (["d", "D", "ArrowRight"].includes(e.key)) {
+    playerX += step;
+  }
+  if (playerX < 0) playerX = 0;
+  if (playerX > window.innerWidth - 50) playerX = window.innerWidth - 50;
+  player.style.left = playerX + "px";
+}
+
+leftBtn.addEventListener("touchstart", () => moveMobile(-step));
+rightBtn.addEventListener("touchstart", () => moveMobile(step));
+
+function moveMobile(distance) {
+  if (!gameActive) return;
+  playerX += distance;
+  if (playerX < 0) playerX = 0;
+  if (playerX > window.innerWidth - 50) playerX = window.innerWidth - 50;
+  player.style.left = playerX + "px";
+}
+
+function spawnPumpkin() {
+  const pumpkin = document.createElement("div");
+  pumpkin.classList.add("pumpkin");
+  pumpkin.textContent = "🎃";
+  pumpkin.style.left = Math.random() * (window.innerWidth - 40) + "px";
+  pumpkin.style.top = "-50px";
+  game.appendChild(pumpkin);
+
+  let pos = -50;
+  const fallSpeed = pumpkinSpeed;
+
+  const fall = setInterval(() => {
+    if (!gameActive) {
+      pumpkin.remove();
+      clearInterval(fall);
+      return;
+    }
+
+    pos += fallSpeed;
+    pumpkin.style.top = pos + "px";
+
+    const pumpkinRect = pumpkin.getBoundingClientRect();
+    const playerRect = player.getBoundingClientRect();
+
+    if (
+      pumpkinRect.bottom >= playerRect.top &&
+      pumpkinRect.left + 10 < playerRect.right &&
+      pumpkinRect.right - 10 > playerRect.left
+    ) {
+      score++;
+      scoreDisplay.textContent = score;
+      pumpkin.remove();
+      clearInterval(fall);
+
+      if (score >= 15 && level < 5) {
+        nextLevelPrompt();
+      } else if (score >= 15 && level === 5) {
+        endGame(true);
+      }
+    }
+
+    if (pos > window.innerHeight) {
+      pumpkin.remove();
+      clearInterval(fall);
+    }
+  }, 30);
+}
+
+function spawnGhost() {
+  const ghost = document.createElement("div");
+  ghost.classList.add("ghost");
+  ghost.textContent = "👻";
+  ghost.style.left = Math.random() * (window.innerWidth - 40) + "px";
+  ghost.style.top = "-50px";
+  game.appendChild(ghost);
+
+  let pos = -50;
+  const fallSpeed = ghostSpeed;
+
+  const fall = setInterval(() => {
+    if (!gameActive) {
+      ghost.remove();
+      clearInterval(fall);
+      return;
+    }
+
+    pos += fallSpeed;
+    ghost.style.top = pos + "px";
+
+    const ghostRect = ghost.getBoundingClientRect();
+    const playerRect = player.getBoundingClientRect();
+
+    if (
+      ghostRect.bottom >= playerRect.top &&
+      ghostRect.left + 10 < playerRect.right &&
+      ghostRect.right - 10 > playerRect.left
+    ) {
+      endGame(false, true);
+      ghost.remove();
+      clearInterval(fall);
+    }
+
+    if (pos > window.innerHeight) {
+      ghost.remove();
+      clearInterval(fall);
+    }
+  }, 40);
+}
+
+function updateTimer() {
+  if (!gameActive) return;
+  timeLeft--;
+  timeDisplay.textContent = timeLeft;
+  if (timeLeft <= 0 && score < 15) endGame(false);
+}
+
+function nextLevelPrompt() {
+  gameActive = false;
+  clearInterval(gameInterval);
+  clearInterval(pumpkinInterval);
+  clearInterval(ghostInterval);
+
+  endScreen.style.display = "flex";
+  document.getElementById("endMessage").textContent = `🎯 Você completou o Nível ${level}!`;
+  nextLevelBtn.style.display = "inline-block";
+  restartBtn.style.display = "none";
+}
+
+function nextLevel() {
+  level++;
+  if (level > 5) return endGame(true);
+  timeLeft = 30;
+  score = 0;
+  endScreen.style.display = "none";
+  nextLevelBtn.style.display = "none";
+  startGame();
+}
+
+function endGame(won = false, ghostHit = false) {
+  gameActive = false;
+  clearInterval(gameInterval);
+  clearInterval(pumpkinInterval);
+  clearInterval(ghostInterval);
+  document.querySelectorAll(".pumpkin, .ghost").forEach(p => p.remove());
+  endScreen.style.display = "flex";
+  nextLevelBtn.style.display = "none";
+  restartBtn.style.display = "inline-block";
+  copyBtn.style.display = "none";
+
+  if (ghostHit) {
+    document.getElementById("endMessage").textContent = "👻 Você tomou um susto!";
+    finalScore.textContent = "";
+    rewardText.textContent = "";
+    rewardCode.textContent = "";
+    return;
+  }
+
+  if (won && level === 5) {
+    const code = rewardCodes[Math.floor(Math.random() * rewardCodes.length)];
+    document.getElementById("endMessage").textContent = "🎉 Parabéns! Você venceu!";
+    rewardText.textContent = "Seu código de recompensa:";
+    rewardCode.textContent = code;
+    copyBtn.style.display = "inline-block";
+    copyBtn.onclick = () => {
+      navigator.clipboard.writeText(code);
+      copyBtn.textContent = "✅ Copiado!";
     };
-    const bgMusic = document.getElementById("bgMusic");
+  } else {
+    document.getElementById("endMessage").textContent = "⏰ O tempo acabou!";
+  }
+}
 
-    let player = { x: canvas.width/2, y: canvas.height-100, size: 50, speed: 8 };
-    let pumpkins = [], ghosts = [];
-    let score = 0, level = 1, timer = 30, playing = false;
-    let gameLoop, timeLoop, pumpkinLoop, ghostLoop;
-    const codes = ["NTX-472A", "NTX-19FD", "NTX-83ZZ", "NTX-552K", "NTX-WIN5"];
-
-    function spawnPumpkin() {
-      pumpkins.push({ x: Math.random() * (canvas.width-40), y: -40, size: 40, speed: 4 + Math.random() * 2 });
-    }
-    function spawnGhost() {
-      ghosts.push({ x: Math.random() * (canvas.width-40), y: -40, size: 45, speed: 4 + Math.random() * 2 });
-    }
-
-    function drawPlayer() {
-      ctx.font = "50px Arial";
-      ctx.fillText("🧙‍♂️", player.x, player.y);
-    }
-
-    function drawPumpkins() {
-      for (let p of pumpkins) {
-        ctx.font = "40px Arial";
-        ctx.fillText("🎃", p.x, p.y);
-      }
-    }
-
-    function drawGhosts() {
-      for (let g of ghosts) {
-        ctx.font = "45px Arial";
-        ctx.fillText("👻", g.x, g.y);
-      }
-    }
-
-    function update() {
-      if (!playing) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawPlayer();
-      drawPumpkins();
-      drawGhosts();
-
-      for (let p of pumpkins) p.y += p.speed;
-      pumpkins = pumpkins.filter(p => p.y < canvas.height);
-      for (let g of ghosts) g.y += g.speed;
-      ghosts = ghosts.filter(g => g.y < canvas.height);
-
-      for (let p of pumpkins) {
-        if (Math.abs(player.x - p.x) < 40 && Math.abs(player.y - p.y) < 40) {
-          pumpkins.splice(pumpkins.indexOf(p), 1);
-          score++;
-          sounds.collect.play();
-          document.getElementById("score").textContent = score;
-          if (score >= 15) nextLevel();
-        }
-      }
-
-      for (let g of ghosts) {
-        if (Math.abs(player.x - g.x) < 40 && Math.abs(player.y - g.y) < 40) {
-          sounds.scare.play();
-          endGame("👻 Você tomou um susto!");
-        }
-      }
-
-      gameLoop = requestAnimationFrame(update);
-    }
-
-    function nextLevel() {
-      level++;
-      if (level > 5) {
-        endGame("🏆 Parabéns! Você venceu!");
-        return;
-      }
-      score = 0;
-      timer = 30;
-      document.getElementById("level").textContent = level;
-      document.getElementById("score").textContent = score;
-    }
-
-    function endGame(msg) {
-      playing = false;
-      clearInterval(timeLoop);
-      clearInterval(pumpkinLoop);
-      clearInterval(ghostLoop);
-      cancelAnimationFrame(gameLoop);
-      bgMusic.pause();
-      document.getElementById("endMessage").textContent = msg;
-      document.getElementById("gameOverScreen").style.display = "flex";
-
-      if (level === 5) {
-        document.getElementById("codeBox").style.display = "block";
-        document.getElementById("codeValue").textContent = codes[4];
-      } else {
-        document.getElementById("codeBox").style.display = "none";
-      }
-    }
-
-    function startGame() {
-      score = 0; level = 1; timer = 30;
-      pumpkins = []; ghosts = [];
-      player.x = canvas.width/2;
-      playing = true;
-      sounds.start.play();
-      bgMusic.volume = 0.2;
-      bgMusic.play();
-      document.getElementById("score").textContent = score;
-      document.getElementById("level").textContent = level;
-      document.getElementById("gameOverScreen").style.display = "none";
-      document.getElementById("startScreen").style.display = "none";
-
-      timeLoop = setInterval(() => {
-        timer--;
-        document.getElementById("timer").textContent = timer;
-        if (timer <= 0) endGame("⏳ O tempo acabou!");
-      }, 1000);
-      pumpkinLoop = setInterval(spawnPumpkin, 400);
-      ghostLoop = setInterval(spawnGhost, 1200);
-      update();
-    }
-
-    // controles
-    document.getElementById("startBtn").onclick = startGame;
-    document.getElementById("restartBtn").onclick = () => location.reload();
-    document.getElementById("copyCodeBtn").onclick = () => {
-      navigator.clipboard.writeText(document.getElementById("codeValue").textContent);
-      alert("Código copiado!");
-    };
-    document.getElementById("leftBtn").ontouchstart = () => player.x -= player.speed * 2;
-    document.getElementById("rightBtn").ontouchstart = () => player.x += player.speed * 2;
-    document.addEventListener("keydown", e => {
-      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") player.x -= player.speed;
-      if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") player.x += player.speed;
-      if (player.x < 0) player.x = 0;
-      if (player.x > canvas.width - 50) player.x = canvas.width - 50;
-    });
-    document.addEventListener("mousedown", e => e.preventDefault());
-  </script>
+restartBtn.addEventListener("click", startGame);
+startBtn.addEventListener("click", startGame);
+nextLevelBtn.addEventListener("click", nextLevel);
+</script>
 </body>
 </html>
