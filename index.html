@@ -1,222 +1,234 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Spooky Quest — Pumpkin Wizard</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{width:100%;height:100%;overflow:hidden;font-family:Inter,Arial,sans-serif;background:linear-gradient(#0b0406,#14040a);}
-#game{position:relative;width:100vw;height:100vh;overflow:hidden;}
-#player{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);font-size:56px;pointer-events:none;user-select:none}
-.pumpkin, .ghost{position:absolute;font-size:44px;user-select:none;pointer-events:none}
-.ghost{filter:drop-shadow(0 0 6px rgba(255,255,255,0.2))}
-#topbar{position:absolute;top:12px;left:50%;transform:translateX(-50%);display:flex;gap:28px;align-items:center;color:#fff;font-weight:600;font-size:18px;z-index:30}
-#levelbox{background:rgba(255,165,0,0.08);padding:8px 12px;border-radius:8px;border:1px solid rgba(255,165,0,0.12);color:#ffd08a}
-#scorebox,#timebox{background:rgba(255,255,255,0.03);padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.03)}
-#startBtn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:40;padding:14px 24px;background:orange;border:none;border-radius:10px;font-weight:700;cursor:pointer;color:#000;font-size:18px}
-#endScreen, #levelUpScreen{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:50;background:rgba(0,0,0,0.85);color:#fff;padding:22px 28px;border-radius:12px;border:2px solid rgba(255,165,0,0.12);text-align:center;display:none;width:min(420px,90vw)}
-#endScreen h2,#levelUpScreen h2{margin-bottom:10px}
-#endScreen p,#levelUpScreen p{margin:8px 0}
-#restartBtn,#nextLevelBtn,#copyBtn{margin-top:12px;padding:10px 18px;background:orange;border:none;border-radius:8px;font-weight:700;cursor:pointer}
-#mobileControls{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:none;gap:22px;z-index:40}
-#mobileControls button{padding:14px 22px;font-size:20px;border-radius:10px;border:none;background:rgba(255,165,0,0.95);cursor:pointer}
-@media (max-width:768px){
-  #mobileControls{display:flex}
-  #player{font-size:48px;bottom:20px}
-  .pumpkin,.ghost{font-size:40px}
-  #topbar{gap:14px;font-size:16px}
-  #startBtn{padding:12px 18px;font-size:16px}
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎃 Spooky Catcher</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: #000;
+      color: white;
+      font-family: "Comic Sans MS", cursive;
+      text-align: center;
+    }
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background: linear-gradient(#000, #111);
+    }
+    #ui {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 20px;
+      z-index: 10;
+    }
+    #startScreen, #gameOverScreen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 20;
+    }
+    button {
+      background: orange;
+      border: none;
+      padding: 15px 30px;
+      font-size: 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: 0.3s;
+    }
+    button:hover { background: #ffb347; }
+    #mobileControls {
+      position: absolute;
+      bottom: 20px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      z-index: 10;
+    }
+    .btn {
+      background: rgba(255,165,0,0.6);
+      border: 2px solid #fff;
+      color: white;
+      font-size: 25px;
+      padding: 15px;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+    }
+    #codeBox {
+      background: #222;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 18px;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
-<div id="game"><div id="player">🧙‍♂️</div></div>
+  <div id="ui">🎃 Pontos: <span id="score">0</span> | ⏳ Tempo: <span id="timer">30</span> | 🧩 Nível: <span id="level">1</span></div>
+  <div id="startScreen">
+    <h1>🎃 Spooky Catcher 🧙‍♂️</h1>
+    <button id="startBtn">Começar</button>
+  </div>
+  <div id="gameOverScreen" style="display:none;">
+    <h2 id="endMessage"></h2>
+    <div id="codeBox" style="display:none;">
+      <p>💀 Seu código é: <b id="codeValue"></b></p>
+      <button id="copyCodeBtn">Copiar Código</button>
+    </div>
+    <button id="restartBtn">Jogar Novamente</button>
+  </div>
+  <canvas id="gameCanvas"></canvas>
+  <div id="mobileControls">
+    <button class="btn" id="leftBtn">⬅️</button>
+    <button class="btn" id="rightBtn">➡️</button>
+  </div>
 
-<div id="topbar">
-  <div id="levelbox">Level: <span id="level">1</span></div>
-  <div id="scorebox">Pontos: <span id="score">0</span></div>
-  <div id="timebox">Tempo: <span id="time">60</span>s</div>
-</div>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = innerWidth;
+    canvas.height = innerHeight;
 
-<button id="startBtn">Começar</button>
-
-<div id="levelUpScreen">
-  <h2>🎉 Parabéns!</h2>
-  <p>Você completou este nível!</p>
-  <button id="nextLevelBtn">Ir para o próximo nível</button>
-</div>
-
-<div id="endScreen">
-  <h2 id="endTitle">Fim de Jogo</h2>
-  <p>Pontos: <strong id="finalScore">0</strong></p>
-  <p id="rewardCode" style="font-weight:700;color:#ffd08a"></p>
-  <button id="copyBtn">Copiar Código</button>
-  <button id="restartBtn">Jogar novamente</button>
-</div>
-
-<div id="mobileControls">
-  <button id="leftBtn">◀️</button>
-  <button id="rightBtn">▶️</button>
-</div>
-
-<script>
-const game=document.getElementById('game');
-const player=document.getElementById('player');
-const startBtn=document.getElementById('startBtn');
-const endScreen=document.getElementById('endScreen');
-const restartBtn=document.getElementById('restartBtn');
-const copyBtn=document.getElementById('copyBtn');
-const rewardCodeEl=document.getElementById('rewardCode');
-const finalScoreEl=document.getElementById('finalScore');
-const levelEl=document.getElementById('level');
-const timeEl=document.getElementById('time');
-const scoreEl=document.getElementById('score');
-const mobileControls=document.getElementById('mobileControls');
-const leftBtn=document.getElementById('leftBtn');
-const rightBtn=document.getElementById('rightBtn');
-const levelUpScreen=document.getElementById('levelUpScreen');
-const nextLevelBtn=document.getElementById('nextLevelBtn');
-
-let score=0,timeLeft=60,level=1,pumpkinsThisLevel=0;
-let gameActive=false,playerX=window.innerWidth/2;
-const playerWidth=50,step=35;
-let pumpkinInterval,ghostInterval,gameInterval;
-const MAX_LEVEL=5,POINTS_PER_LEVEL=15;
-
-const REWARD_CODES=[
-"NTX-1A7G","NTX-B4K9","NTX-5Q2M","NTX-R8ZW","NTX-6T0P","NTX-X3N4","NTX-9V6S","NTX-C2H7","NTX-J8L1","NTX-Z5Y0",
-"NTX-4F8K","NTX-Q2W1","NTX-M7Z5","NTX-H9J3","NTX-L6D0","NTX-P5R8","NTX-V3B2","NTX-N1C9","NTX-T8Y4","NTX-S6U7",
-"NTX-K2E5","NTX-G9M1","NTX-J4H6","NTX-R0X3","NTX-B7A8","NTX-C5L9","NTX-D3F2","NTX-W6Q0","NTX-Z8V1","NTX-Y4P7"
-];
-
-let currentCode="";
-
-function startGame(){
-  score=0;timeLeft=60;level=1;pumpkinsThisLevel=0;gameActive=true;
-  playerX=window.innerWidth/2;player.style.left=playerX+'px';
-  scoreEl.textContent=score;timeEl.textContent=timeLeft;levelEl.textContent=level;
-  rewardCodeEl.textContent='';endScreen.style.display='none';levelUpScreen.style.display='none';
-  startBtn.style.display='none';
-  clearIntervals();
-  pumpkinInterval=setInterval(spawnPumpkin,250);
-  ghostInterval=setInterval(spawnGhost,5000);
-  gameInterval=setInterval(updateTimer,1000);
-  document.addEventListener('keydown',onKeyDown);
-  if(window.innerWidth<=768) mobileControls.style.display='flex';
-  else mobileControls.style.display='none';
-}
-
-document.addEventListener('contextmenu',e=>e.preventDefault());
-
-function onKeyDown(e){
-  if(!gameActive) return;
-  const key=e.key.toLowerCase();
-  if(key==='a'||key==='arrowleft') playerX-=step;
-  if(key==='d'||key==='arrowright') playerX+=step;
-  clampPlayer();
-}
-
-leftBtn.addEventListener('touchstart',()=>moveMobile(-step));
-rightBtn.addEventListener('touchstart',()=>moveMobile(step));
-leftBtn.addEventListener('mousedown',()=>moveMobile(-step));
-rightBtn.addEventListener('mousedown',()=>moveMobile(step));
-
-function moveMobile(delta){if(!gameActive) return;playerX+=delta;clampPlayer();}
-function clampPlayer(){if(playerX<0)playerX=0;if(playerX>window.innerWidth-playerWidth)playerX=window.innerWidth-playerWidth;player.style.left=playerX+'px';}
-
-function spawnPumpkin(){
-  if(!gameActive) return;
-  const p=document.createElement('div');p.className='pumpkin';p.textContent='🎃';
-  const left=Math.random()*(window.innerWidth-40);p.style.left=left+'px';p.style.top='-60px';
-  game.appendChild(p);
-  let pos=-60;const speed=7+Math.random()*2;
-  const id=setInterval(()=>{
-    if(!gameActive){clearInterval(id);if(p.parentNode)p.remove();return;}
-    pos+=speed;p.style.top=pos+'px';
-    const pRect=p.getBoundingClientRect(),playerRect=player.getBoundingClientRect();
-    if(pRect.bottom>=playerRect.top && pRect.left+8<playerRect.right && pRect.right-8>playerRect.left){
-      score++;pumpkinsThisLevel++;scoreEl.textContent=score;
-      if(level<MAX_LEVEL && pumpkinsThisLevel>=POINTS_PER_LEVEL) levelUp();
-      p.remove();clearInterval(id);return;
+    let player = { x: canvas.width/2, y: canvas.height-100, size: 50, speed: 8 };
+    let pumpkins = [], ghosts = [];
+    let score = 0, level = 1, timer = 30, playing = false, interval, gameOver = false;
+    const codes = ["NTX-472A", "NTX-19FD", "NTX-83ZZ", "NTX-552K", "NTX-WIN5"];
+    
+    function spawnPumpkin() {
+      pumpkins.push({ x: Math.random() * (canvas.width-40), y: -40, size: 40, speed: 4 + Math.random() * 3 });
     }
-    if(pos>window.innerHeight){p.remove();clearInterval(id);}
-  },20);
-}
-
-function spawnGhost(){
-  if(!gameActive) return;
-  const g=document.createElement('div');g.className='ghost';g.textContent='👻';
-  const left=Math.random()*(window.innerWidth-40);g.style.left=left+'px';g.style.top='-60px';
-  game.appendChild(g);let pos=-60;const speed=1.5;
-  const id=setInterval(()=>{
-    if(!gameActive){clearInterval(id);if(g.parentNode)g.remove();return;}
-    pos+=speed;g.style.top=pos+'px';
-    const gRect=g.getBoundingClientRect(),playerRect=player.getBoundingClientRect();
-    if(gRect.bottom>=playerRect.top && gRect.top<=playerRect.bottom && gRect.left<playerRect.right && gRect.right>playerRect.left){
-      endGame(true);g.remove();clearInterval(id);return;
+    function spawnGhost() {
+      ghosts.push({ x: Math.random() * (canvas.width-40), y: -40, size: 45, speed: 5 + Math.random() * 2 });
     }
-    if(pos>window.innerHeight){g.remove();clearInterval(id);}
-  },30);
-}
 
-function levelUp(){
-  gameActive=false;clearIntervals();pumpkinsThisLevel=0;timeLeft=60;timeEl.textContent=timeLeft;
-  if(level>=MAX_LEVEL){showEndScreen();return;}
-  levelUpScreen.style.display='block';
-}
+    function drawPlayer() {
+      ctx.font = "50px Arial";
+      ctx.fillText("🧙‍♂️", player.x, player.y);
+    }
 
-nextLevelBtn.addEventListener('click',()=>{
-  level++;levelEl.textContent=level;levelUpScreen.style.display='none';
-  score=0;scoreEl.textContent=score;timeLeft=60;timeEl.textContent=timeLeft;
-  gameActive=true;
-  clearIntervals();
-  pumpkinInterval=setInterval(spawnPumpkin,250);
-  ghostInterval=setInterval(spawnGhost,5000);
-  gameInterval=setInterval(updateTimer,1000);
-});
+    function drawPumpkins() {
+      for (let p of pumpkins) {
+        ctx.font = "40px Arial";
+        ctx.fillText("🎃", p.x, p.y);
+      }
+    }
 
-function updateTimer(){
-  if(!gameActive) return;
-  timeLeft--;timeEl.textContent=timeLeft;
-  if(timeLeft<=0) endGame(false);
-}
+    function drawGhosts() {
+      for (let g of ghosts) {
+        ctx.font = "45px Arial";
+        ctx.fillText("👻", g.x, g.y);
+      }
+    }
 
-function clearIntervals(){clearInterval(gameInterval);clearInterval(pumpkinInterval);clearInterval(ghostInterval);}
+    function update() {
+      if (!playing) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawPlayer();
+      drawPumpkins();
+      drawGhosts();
 
-function showEndScreen(){
-  gameActive=false;clearIntervals();
-  document.querySelectorAll('.pumpkin').forEach(n=>n.remove());
-  document.querySelectorAll('.ghost').forEach(n=>n.remove());
-  finalScoreEl.textContent=score;
-  if(level===MAX_LEVEL && pumpkinsThisLevel>=POINTS_PER_LEVEL){
-    currentCode=REWARD_CODES[Math.floor(Math.random()*REWARD_CODES.length)];
-    rewardCodeEl.textContent='🎉 Código: '+currentCode;copyBtn.style.display='inline-block';
-    document.getElementById('endTitle').textContent='Parabéns!';
-  }else{
-    rewardCodeEl.textContent='';copyBtn.style.display='none';document.getElementById('endTitle').textContent='Fim de Jogo';
-  }
-  endScreen.style.display='block';
-}
+      // mover abóboras
+      for (let p of pumpkins) p.y += p.speed;
+      pumpkins = pumpkins.filter(p => p.y < canvas.height);
 
-function endGame(byGhost=false){
-  gameActive=false;clearIntervals();
-  document.querySelectorAll('.pumpkin').forEach(n=>n.remove());
-  document.querySelectorAll('.ghost').forEach(n=>n.remove());
-  if(byGhost){
-    rewardCodeEl.textContent='Você tomou um susto! 😱';
-    document.getElementById('endTitle').textContent='Você tomou um susto!';
-    copyBtn.style.display='none';
-  }else if(level===MAX_LEVEL && pumpkinsThisLevel>=POINTS_PER_LEVEL){
-    showEndScreen();
-  }else{
-    showEndScreen();
-  }
-}
+      // mover fantasmas
+      for (let g of ghosts) g.y += g.speed;
+      ghosts = ghosts.filter(g => g.y < canvas.height);
 
-startBtn.addEventListener('click',startGame);
-restartBtn.addEventListener('click',startGame);
-copyBtn.addEventListener('click',()=>{navigator.clipboard.writeText(currentCode);alert('Código copiado!');});
-</script>
+      // colisão com abóbora
+      for (let p of pumpkins) {
+        if (Math.abs(player.x - p.x) < 40 && Math.abs(player.y - p.y) < 40) {
+          pumpkins.splice(pumpkins.indexOf(p), 1);
+          score++;
+          document.getElementById("score").textContent = score;
+          if (score >= 15) nextLevel();
+        }
+      }
+
+      // colisão com fantasma
+      for (let g of ghosts) {
+        if (Math.abs(player.x - g.x) < 40 && Math.abs(player.y - g.y) < 40) {
+          endGame("👻 Você tomou um susto!");
+        }
+      }
+
+      requestAnimationFrame(update);
+    }
+
+    function nextLevel() {
+      level++;
+      score = 0;
+      timer = 30;
+      document.getElementById("level").textContent = level;
+      document.getElementById("score").textContent = score;
+      if (level === 5) endGame("🏆 Parabéns! Você venceu!");
+    }
+
+    function endGame(msg) {
+      playing = false;
+      clearInterval(interval);
+      document.getElementById("endMessage").textContent = msg;
+      document.getElementById("gameOverScreen").style.display = "flex";
+      if (level === 5) {
+        document.getElementById("codeBox").style.display = "block";
+        document.getElementById("codeValue").textContent = codes[4];
+      }
+    }
+
+    function startGame() {
+      score = 0; level = 1; timer = 30;
+      pumpkins = []; ghosts = [];
+      player.x = canvas.width/2;
+      playing = true;
+      document.getElementById("score").textContent = score;
+      document.getElementById("level").textContent = level;
+      document.getElementById("gameOverScreen").style.display = "none";
+      document.getElementById("startScreen").style.display = "none";
+      interval = setInterval(() => {
+        timer--;
+        document.getElementById("timer").textContent = timer;
+        if (timer <= 0) endGame("⏳ O tempo acabou!");
+      }, 1000);
+      setInterval(spawnPumpkin, 700);
+      setInterval(spawnGhost, 1500);
+      update();
+    }
+
+    // controles
+    document.getElementById("startBtn").onclick = startGame;
+    document.getElementById("restartBtn").onclick = () => location.reload();
+    document.getElementById("copyCodeBtn").onclick = () => {
+      navigator.clipboard.writeText(document.getElementById("codeValue").textContent);
+      alert("Código copiado!");
+    };
+
+    document.getElementById("leftBtn").ontouchstart = () => player.x -= player.speed * 2;
+    document.getElementById("rightBtn").ontouchstart = () => player.x += player.speed * 2;
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") player.x -= player.speed;
+      if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") player.x += player.speed;
+      if (player.x < 0) player.x = 0;
+      if (player.x > canvas.width - 50) player.x = canvas.width - 50;
+    });
+
+    // desativa clique do mouse
+    document.addEventListener("mousedown", e => e.preventDefault());
+  </script>
 </body>
 </html>
