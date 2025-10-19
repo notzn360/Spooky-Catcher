@@ -53,7 +53,6 @@
     height: 100%;
     background: rgba(0, 0, 0, 0.9);
     color: white;
-    display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -126,14 +125,17 @@ let ghostInterval;
 let playerX;
 let gameActive = false;
 let level = 1;
-let step = 35;
-let pumpkinSpeed = 3;
-let ghostSpeed = 2;
-let spawnRate = 1200;
+let step = 40;
+let pumpkinSpeed = 6; // AUMENTADO
+let ghostSpeed = 4;   // AUMENTADO
+let spawnRate = 800;  // MAIS FREQUENTE
 
 const rewardCodes = [
-  "HALLOWEEN-2025", "MAGIC-7777", "SPOOKY-5555",
-  "MAGO-9999", "WITCHKING-4444"
+  "HALLOWEEN-2025",
+  "MAGIC-7777",
+  "SPOOKY-5555",
+  "MAGO-9999",
+  "WITCHKING-4444"
 ];
 
 document.addEventListener("contextmenu", e => e.preventDefault());
@@ -152,7 +154,7 @@ function startGame() {
   player.style.left = playerX + "px";
 
   pumpkinInterval = setInterval(spawnPumpkin, spawnRate);
-  ghostInterval = setInterval(spawnGhost, spawnRate * 3);
+  ghostInterval = setInterval(spawnGhost, spawnRate * 2);
   gameInterval = setInterval(updateTimer, 1000);
 
   document.addEventListener("keydown", movePlayer);
@@ -176,6 +178,8 @@ function movePlayer(e) {
 
 leftBtn.addEventListener("touchstart", () => moveMobile(-step));
 rightBtn.addEventListener("touchstart", () => moveMobile(step));
+leftBtn.addEventListener("click", () => moveMobile(-step));
+rightBtn.addEventListener("click", () => moveMobile(step));
 
 function moveMobile(distance) {
   if (!gameActive) return;
@@ -230,7 +234,7 @@ function spawnPumpkin() {
       pumpkin.remove();
       clearInterval(fall);
     }
-  }, 30);
+  }, 20);
 }
 
 function spawnGhost() {
@@ -271,7 +275,7 @@ function spawnGhost() {
       ghost.remove();
       clearInterval(fall);
     }
-  }, 40);
+  }, 25);
 }
 
 function updateTimer() {
@@ -343,3 +347,4 @@ nextLevelBtn.addEventListener("click", nextLevel);
 </script>
 </body>
 </html>
+
