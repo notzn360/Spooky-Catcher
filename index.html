@@ -35,7 +35,20 @@
     transform: translateX(-50%);
     font-size: 20px;
   }
-  #startBtn, #restartBtn, #nextLevelBtn, #copyBtn {
+  #startBtn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: orange;
+    border: none;
+    padding: 10px 20px;
+    margin: 5px;
+    font-size: 18px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  #restartBtn, #nextLevelBtn, #copyBtn {
     background: orange;
     border: none;
     padding: 10px 20px;
@@ -126,61 +139,21 @@ let playerX;
 let gameActive = false;
 let level = 1;
 let step = 40;
-let pumpkinSpeed = 6; // AUMENTADO
-let ghostSpeed = 4;   // AUMENTADO
-let spawnRate = 800;  // MAIS FREQUENTE
+let pumpkinSpeed = 6;
+let ghostSpeed = 4;
+let spawnRate = 800;
 
 const rewardCodes = [
-  "HALLOWEEN-2025",
-  "MAGIC-7777",
-  "SPOOKY-5555",
-  "MAGO-9999",
-  "WITCHKING-4444",
-  "NTXGHOST-1001",
-  "SHADOW-2024",
-  "NIGHTMARE-6666",
-  "BATSTORM-4321",
-  "PUMPKIN-1313",
-  "WITCH-2424",
-  "GHOSTLY-9009",
-  "ZOMBIE-3333",
-  "CANDY-8080",
-  "SKULL-7777",
-  "FEAR-1111",
-  "CURSE-9090",
-  "SPELL-5555",
-  "HAUNT-6660",
-  "EVIL-2222",
-  "TRICK-7770",
-  "TREAT-8888",
-  "MOON-4444",
-  "DARK-1010",
-  "CREEPY-2020",
-  "MONSTER-3030",
-  "BONES-4040",
-  "SCREAM-5050",
-  "POTION-6060",
-  "SPIDER-7070",
-  "MIST-8088",
-  "CAULDRON-9990",
-  "SOUL-3131",
-  "BLOOD-2121",
-  "TERROR-4141",
-  "GRAVE-5151",
-  "MASK-6161",
-  "SCARY-7171",
-  "WOLF-8181",
-  "DREAD-9191",
-  "PHANTOM-1221",
-  "CRYPT-1331",
-  "MUMMY-1441",
-  "BOO-1551",
-  "CAFEAR-1661",
-  "VAMPIRE-1771",
-  "SKELETON-1881",
-  "SPIRIT-1991",
-  "FRIGHT-2002",
-  "NTX-WOLOWEEN-5050"
+  "HALLOWEEN-2025","MAGIC-7777","SPOOKY-5555","MAGO-9999","WITCHKING-4444",
+  "NTXGHOST-1001","SHADOW-2024","NIGHTMARE-6666","BATSTORM-4321","PUMPKIN-1313",
+  "WITCH-2424","GHOSTLY-9009","ZOMBIE-3333","CANDY-8080","SKULL-7777",
+  "FEAR-1111","CURSE-9090","SPELL-5555","HAUNT-6660","EVIL-2222",
+  "TRICK-7770","TREAT-8888","MOON-4444","DARK-1010","CREEPY-2020",
+  "MONSTER-3030","BONES-4040","SCREAM-5050","POTION-6060","SPIDER-7070",
+  "MIST-8088","CAULDRON-9990","SOUL-3131","BLOOD-2121","TERROR-4141",
+  "GRAVE-5151","MASK-6161","SCARY-7171","WOLF-8181","DREAD-9191",
+  "PHANTOM-1221","CRYPT-1331","MUMMY-1441","BOO-1551","CAFEAR-1661",
+  "VAMPIRE-1771","SKELETON-1881","SPIRIT-1991","FRIGHT-2002","NTX-WOLOWEEN-5050"
 ];
 
 document.addEventListener("contextmenu", e => e.preventDefault());
@@ -246,12 +219,7 @@ function spawnPumpkin() {
   const fallSpeed = pumpkinSpeed;
 
   const fall = setInterval(() => {
-    if (!gameActive) {
-      pumpkin.remove();
-      clearInterval(fall);
-      return;
-    }
-
+    if (!gameActive) { pumpkin.remove(); clearInterval(fall); return; }
     pos += fallSpeed;
     pumpkin.style.top = pos + "px";
 
@@ -268,11 +236,8 @@ function spawnPumpkin() {
       pumpkin.remove();
       clearInterval(fall);
 
-      if (score >= 15 && level < 5) {
-        nextLevelPrompt();
-      } else if (score >= 15 && level === 5) {
-        endGame(true);
-      }
+      if (score >= 15 && level < 5) nextLevelPrompt();
+      else if (score >= 15 && level === 5) endGame(true);
     }
 
     if (pos > window.innerHeight) {
@@ -294,12 +259,7 @@ function spawnGhost() {
   const fallSpeed = ghostSpeed;
 
   const fall = setInterval(() => {
-    if (!gameActive) {
-      ghost.remove();
-      clearInterval(fall);
-      return;
-    }
-
+    if (!gameActive) { ghost.remove(); clearInterval(fall); return; }
     pos += fallSpeed;
     ghost.style.top = pos + "px";
 
@@ -392,4 +352,3 @@ nextLevelBtn.addEventListener("click", nextLevel);
 </script>
 </body>
 </html>
-
