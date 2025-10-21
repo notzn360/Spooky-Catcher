@@ -23,6 +23,9 @@
     position: absolute;
     bottom: 20px;
     font-size: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
   }
   .pumpkin, .ghost {
     position: absolute;
@@ -35,20 +38,7 @@
     transform: translateX(-50%);
     font-size: 20px;
   }
-  #startBtn {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: orange;
-    border: none;
-    padding: 10px 20px;
-    margin: 5px;
-    font-size: 18px;
-    border-radius: 10px;
-    cursor: pointer;
-  }
-  #restartBtn, #nextLevelBtn, #copyBtn {
+  #startBtn, #restartBtn, #nextLevelBtn, #copyBtn {
     background: orange;
     border: none;
     padding: 10px 20px;
@@ -74,8 +64,9 @@
     position: absolute;
     bottom: 10px;
     width: 100%;
-    display: none;
+    display: flex; /* sempre visível */
     justify-content: space-around;
+    z-index: 5;
   }
   .controlBtn {
     background: orange;
@@ -168,7 +159,8 @@ function startGame() {
   endScreen.style.display = "none";
   levelDisplay.textContent = level;
 
-  playerX = window.innerWidth / 2;
+  // centraliza o jogador
+  playerX = window.innerWidth / 2 - player.offsetWidth / 2;
   player.style.left = playerX + "px";
 
   pumpkinInterval = setInterval(spawnPumpkin, spawnRate);
@@ -177,18 +169,14 @@ function startGame() {
 
   document.addEventListener("keydown", movePlayer);
 
-  if (window.innerWidth <= 768) {
-    document.getElementById("mobileControls").style.display = "flex";
-  }
+  // mostra controles mobile sempre
+  document.getElementById("mobileControls").style.display = "flex";
 }
 
 function movePlayer(e) {
   if (!gameActive) return;
-  if (["a", "A", "ArrowLeft"].includes(e.key)) {
-    playerX -= step;
-  } else if (["d", "D", "ArrowRight"].includes(e.key)) {
-    playerX += step;
-  }
+  if (["a","A","ArrowLeft"].includes(e.key)) playerX -= step;
+  else if (["d","D","ArrowRight"].includes(e.key)) playerX += step;
   if (playerX < 0) playerX = 0;
   if (playerX > window.innerWidth - 50) playerX = window.innerWidth - 50;
   player.style.left = playerX + "px";
@@ -226,11 +214,9 @@ function spawnPumpkin() {
     const pumpkinRect = pumpkin.getBoundingClientRect();
     const playerRect = player.getBoundingClientRect();
 
-    if (
-      pumpkinRect.bottom >= playerRect.top &&
-      pumpkinRect.left + 10 < playerRect.right &&
-      pumpkinRect.right - 10 > playerRect.left
-    ) {
+    if (pumpkinRect.bottom >= playerRect.top &&
+        pumpkinRect.left + 10 < playerRect.right &&
+        pumpkinRect.right - 10 > playerRect.left) {
       score++;
       scoreDisplay.textContent = score;
       pumpkin.remove();
@@ -240,10 +226,7 @@ function spawnPumpkin() {
       else if (score >= 15 && level === 5) endGame(true);
     }
 
-    if (pos > window.innerHeight) {
-      pumpkin.remove();
-      clearInterval(fall);
-    }
+    if (pos > window.innerHeight) { pumpkin.remove(); clearInterval(fall); }
   }, 20);
 }
 
@@ -266,20 +249,15 @@ function spawnGhost() {
     const ghostRect = ghost.getBoundingClientRect();
     const playerRect = player.getBoundingClientRect();
 
-    if (
-      ghostRect.bottom >= playerRect.top &&
-      ghostRect.left + 10 < playerRect.right &&
-      ghostRect.right - 10 > playerRect.left
-    ) {
+    if (ghostRect.bottom >= playerRect.top &&
+        ghostRect.left + 10 < playerRect.right &&
+        ghostRect.right - 10 > playerRect.left) {
       endGame(false, true);
       ghost.remove();
       clearInterval(fall);
     }
 
-    if (pos > window.innerHeight) {
-      ghost.remove();
-      clearInterval(fall);
-    }
+    if (pos > window.innerHeight) { ghost.remove(); clearInterval(fall); }
   }, 25);
 }
 
