@@ -21,8 +21,8 @@
   }
   #player {
     position: absolute;
-    bottom: 20px;
-    font-size: 50px;
+    bottom: 100px; /* sobe para não ficar em cima do botão */
+    font-size: 60px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 5;
@@ -56,23 +56,25 @@
     height: 100%;
     background: rgba(0, 0, 0, 0.9);
     color: white;
+    display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    z-index: 10;
   }
   #mobileControls {
     position: absolute;
-    bottom: 10px;
+    bottom: 20px;
     width: 100%;
-    display: flex; /* sempre visível */
+    display: flex;
     justify-content: space-around;
     z-index: 5;
   }
   .controlBtn {
     background: orange;
     border: none;
-    padding: 15px 30px;
-    font-size: 25px;
+    padding: 20px 40px; /* maior para tablets */
+    font-size: 35px;     /* maior para facilitar toque */
     border-radius: 10px;
     user-select: none;
   }
@@ -129,7 +131,7 @@ let ghostInterval;
 let playerX;
 let gameActive = false;
 let level = 1;
-let step = 40;
+let step = 50;
 let pumpkinSpeed = 6;
 let ghostSpeed = 4;
 let spawnRate = 800;
@@ -159,7 +161,6 @@ function startGame() {
   endScreen.style.display = "none";
   levelDisplay.textContent = level;
 
-  // centraliza o jogador
   playerX = window.innerWidth / 2 - player.offsetWidth / 2;
   player.style.left = playerX + "px";
 
@@ -168,9 +169,7 @@ function startGame() {
   gameInterval = setInterval(updateTimer, 1000);
 
   document.addEventListener("keydown", movePlayer);
-
-  // mostra controles mobile sempre
-  document.getElementById("mobileControls").style.display = "flex";
+  document.getElementById("mobileControls").style.display = "flex"; // sempre visível
 }
 
 function movePlayer(e) {
@@ -178,7 +177,7 @@ function movePlayer(e) {
   if (["a","A","ArrowLeft"].includes(e.key)) playerX -= step;
   else if (["d","D","ArrowRight"].includes(e.key)) playerX += step;
   if (playerX < 0) playerX = 0;
-  if (playerX > window.innerWidth - 50) playerX = window.innerWidth - 50;
+  if (playerX > window.innerWidth - player.offsetWidth) playerX = window.innerWidth - player.offsetWidth;
   player.style.left = playerX + "px";
 }
 
@@ -191,9 +190,11 @@ function moveMobile(distance) {
   if (!gameActive) return;
   playerX += distance;
   if (playerX < 0) playerX = 0;
-  if (playerX > window.innerWidth - 50) playerX = window.innerWidth - 50;
+  if (playerX > window.innerWidth - player.offsetWidth) playerX = window.innerWidth - player.offsetWidth;
   player.style.left = playerX + "px";
 }
+
+// Funções spawnPumpkin, spawnGhost, updateTimer, nextLevelPrompt, nextLevel, endGame permanecem iguais
 
 function spawnPumpkin() {
   const pumpkin = document.createElement("div");
